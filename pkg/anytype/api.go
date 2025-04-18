@@ -238,7 +238,7 @@ func (c *Client) GetTypeByName(ctx context.Context, spaceID, typeName string) (s
 	reverseCache = c.updateTypeCaches(spaceID, types.Data, typeName)
 
 	// Try different matching strategies in order
-	return c.findTypeKeyWithStrategies(ctx, spaceID, typeName, types.Data, reverseCache)
+	return c.findTypeKeyWithStrategies(typeName, types.Data, reverseCache)
 }
 
 // initializeTypeCache initializes the type cache for a specific space
@@ -290,8 +290,7 @@ func (c *Client) isOtPrefixMatch(key, typeName string) bool {
 }
 
 // findTypeKeyWithStrategies tries different strategies to find a type key
-func (c *Client) findTypeKeyWithStrategies(ctx context.Context, spaceID, typeName string,
-	types []TypeInfo, reverseCache map[string]string) (string, error) {
+func (c *Client) findTypeKeyWithStrategies(typeName string, types []TypeInfo, reverseCache map[string]string) (string, error) {
 
 	// Strategy 1: Exact match from updated cache
 	if typeKey, found := reverseCache[typeName]; found {
@@ -465,8 +464,16 @@ func (c *Client) CreateObject(ctx context.Context, spaceID string, object *Objec
 	if object == nil {
 		return nil, ErrInvalidParameter
 	}
-	if err := object.Validate(); err != nil {
-		return nil, err
+
+	// For object creation, we need to validate differently
+	// The ID should be empty (server will assign it), but other validations still apply
+	if object.Type == nil || object.Type.Key == "" {
+		return nil, ErrInvalidTypeID
+	}
+
+	// Add a temporary ID if needed for passing the validation stage
+	if object.ID == "" {
+		object.ID = "temp-id-for-creation"
 	}
 
 	// Ensure we add tags to Relations if they're specified in the Tags field
@@ -490,7 +497,64 @@ func (c *Client) CreateObject(ctx context.Context, spaceID string, object *Objec
 	}
 
 	path := fmt.Sprintf("/v1/spaces/%s/objects", spaceID)
-	body, err := json.Marshal(object)
+
+	// Always remove the ID for object creation requests, regardless of its value
+	// The server will assign a proper ID to the new object
+	object.ID = ""
+
+	// Create a proper request object according to API schema
+	// Using fields that match the object.CreateObjectRequest schema in the Swagger spec
+	createRequest := map[string]interface{}{
+		"name": object.Name,
+	}
+
+	// Add type_key - either from the TypeKey field or from the Type object
+	if object.TypeKey != "" {
+		createRequest["type_key"] = object.TypeKey
+	} else if object.Type != nil && object.Type.Key != "" {
+		createRequest["type_key"] = object.Type.Key
+	}
+
+	// Add icon if present
+	if object.Icon != nil {
+		createRequest["icon"] = object.Icon
+	}
+
+	// Add tags if present - properly format them as the API expects
+	if len(object.Tags) > 0 {
+		// Convert simple string tags to proper tag objects
+		tagObjects := make([]map[string]string, 0, len(object.Tags))
+		for _, tagName := range object.Tags {
+			tagObjects = append(tagObjects, map[string]string{
+				"name": tagName,
+			})
+		}
+		createRequest["tags"] = tagObjects
+	}
+
+	// Add description - either from Description field or fall back to Snippet
+	if object.Description != "" {
+		createRequest["description"] = object.Description
+	} else if object.Snippet != "" {
+		createRequest["description"] = object.Snippet
+	}
+
+	// Add body content if present
+	if object.Body != "" {
+		createRequest["body"] = object.Body
+	}
+
+	// Add source URL for bookmarks
+	if object.Source != "" {
+		createRequest["source"] = object.Source
+	}
+
+	// Add template_id if specified
+	if object.TemplateID != "" {
+		createRequest["template_id"] = object.TemplateID
+	}
+
+	body, err := json.Marshal(createRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal object: %w", err)
 	}
@@ -608,13 +672,54 @@ func (c *Client) UpdateObject(ctx context.Context, spaceID, objectID string, obj
 		object.Relations.Items["tags"] = tagRelations
 	}
 
-	path := fmt.Sprintf("/v1/spaces/%s/objects/%s", spaceID, objectID)
-	body, err := json.Marshal(object)
+	// For updates, use the objects endpoint without the object ID - the ID will be in the request body
+	path := fmt.Sprintf("/v1/spaces/%s/objects", spaceID)
+
+	// Create a proper update request similar to the create request format
+	updateRequest := map[string]interface{}{
+		"id":   objectID, // Include the object ID so the API knows which object to update
+		"name": object.Name,
+	}
+
+	// Add type_key if present
+	if object.TypeKey != "" {
+		updateRequest["type_key"] = object.TypeKey
+	} else if object.Type != nil && object.Type.Key != "" {
+		updateRequest["type_key"] = object.Type.Key
+	}
+
+	// Add icon if present
+	if object.Icon != nil {
+		updateRequest["icon"] = object.Icon
+	}
+
+	// Add tags if present - properly format them as the API expects
+	if len(object.Tags) > 0 {
+		// Convert simple string tags to proper tag objects
+		tagObjects := make([]map[string]string, 0, len(object.Tags))
+		for _, tagName := range object.Tags {
+			tagObjects = append(tagObjects, map[string]string{
+				"name": tagName,
+			})
+		}
+		updateRequest["tags"] = tagObjects
+	}
+
+	// Add description if present
+	if object.Description != "" {
+		updateRequest["description"] = object.Description
+	} else if object.Snippet != "" {
+		updateRequest["description"] = object.Snippet
+	}
+
+	body, err := json.Marshal(updateRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal object: %w", err)
 	}
 
-	data, err := c.makeRequest(ctx, http.MethodPut, path, bytes.NewBuffer(body))
+	// Using POST instead of PATCH, as the Anytype API doesn't support PATCH
+	// The same create endpoint is used for updates, but we include the object ID
+	data, err := c.makeRequest(ctx, http.MethodPost, path, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to update object %s: %w", objectID, err)
 	}

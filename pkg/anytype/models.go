@@ -210,19 +210,24 @@ type (
 	// Object represents an object in a space
 	// Matches the object.Object schema in the API documentation
 	Object struct {
-		Object     string     `json:"object,omitempty"`     // Data model, e.g. "object"
-		ID         string     `json:"id,omitempty"`         // Unique ID of the object
-		Name       string     `json:"name,omitempty"`       // Display name of the object
-		Type       *TypeInfo  `json:"type,omitempty"`       // Type information
-		Icon       *Icon      `json:"icon,omitempty"`       // Object icon
-		Archived   bool       `json:"archived,omitempty"`   // Whether the object is archived
-		SpaceID    string     `json:"space_id,omitempty"`   // ID of the space the object belongs to
-		Snippet    string     `json:"snippet,omitempty"`    // Preview/snippet of the object content
-		Layout     string     `json:"layout,omitempty"`     // Layout of the object e.g. "basic"
-		Blocks     []Block    `json:"blocks,omitempty"`     // Content blocks of the object
-		Relations  *Relations `json:"relations,omitempty"`  // Relations/links to other objects
-		Properties []Property `json:"properties,omitempty"` // Properties/metadata of the object
-		Tags       []string   `json:"-"`                    // Tags is a client-side representation for convenience
+		Object      string     `json:"object,omitempty"`      // Data model, e.g. "object"
+		ID          string     `json:"id,omitempty"`          // Unique ID of the object
+		Name        string     `json:"name,omitempty"`        // Display name of the object
+		Type        *TypeInfo  `json:"type,omitempty"`        // Type information
+		TypeKey     string     `json:"type_key,omitempty"`    // Type key for creating objects
+		Icon        *Icon      `json:"icon,omitempty"`        // Object icon
+		Archived    bool       `json:"archived,omitempty"`    // Whether the object is archived
+		SpaceID     string     `json:"space_id,omitempty"`    // ID of the space the object belongs to
+		Snippet     string     `json:"snippet,omitempty"`     // Preview/snippet of the object content
+		Description string     `json:"description,omitempty"` // Description of the object (for API requests)
+		Body        string     `json:"body,omitempty"`        // Body content in markdown (for API requests)
+		Source      string     `json:"source,omitempty"`      // Source URL (for bookmarks)
+		TemplateID  string     `json:"template_id,omitempty"` // Template ID if using a template
+		Layout      string     `json:"layout,omitempty"`      // Layout of the object e.g. "basic"
+		Blocks      []Block    `json:"blocks,omitempty"`      // Content blocks of the object
+		Relations   *Relations `json:"relations,omitempty"`   // Relations/links to other objects
+		Properties  []Property `json:"properties,omitempty"`  // Properties/metadata of the object
+		Tags        []string   `json:"-"`                     // Tags is a client-side representation for convenience
 	}
 
 	// SearchParams represents search parameters

@@ -19,6 +19,7 @@ func setupMockServer(t *testing.T, statusCode int, response string) (*httptest.S
 	client, err := NewClient(
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
+		WithNoMiddleware(true), // Disable middleware for testing
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -152,6 +153,7 @@ func TestSearch(t *testing.T) {
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
 		WithDebug(true), // Enable debug logging
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -239,6 +241,7 @@ func TestGetObject(t *testing.T) {
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
 		WithDebug(true), // Enable debug mode for better error messages
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -356,6 +359,7 @@ func TestCreateObject(t *testing.T) {
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
 		WithDebug(true), // Enable debug mode
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -472,6 +476,7 @@ func TestUpdateObject(t *testing.T) {
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
 		WithDebug(true), // Enable debug mode
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -548,6 +553,7 @@ func TestDeleteObject(t *testing.T) {
 	client, err := NewClient(
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
+		WithNoMiddleware(true), // Disable middleware for testing
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)

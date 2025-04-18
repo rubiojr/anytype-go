@@ -49,6 +49,7 @@ type Client struct {
 	printCurl    bool                         // Whether to print curl commands
 	typeCache    map[string]map[string]string // Cache mapping spaceID -> typeKey -> typeName
 	logger       log.Logger                   // Logger for output
+	noMiddleware bool                         // Whether middleware should be disabled (useful for testing)
 }
 
 // WithTimeout sets a custom timeout for the HTTP client.
@@ -180,6 +181,25 @@ func WithAppKey(appKey string) ClientOption {
 	}
 }
 
+// WithNoMiddleware disables the automatic application of middleware to the client.
+//
+// This is primarily useful for testing scenarios where middleware might interfere
+// with mock responses. In normal application code, you typically want middleware enabled
+// to get benefits like automatic retries and rate limit handling.
+//
+// Example:
+//
+//	// Create a test client with middleware disabled
+//	client := anytype.NewClient(
+//	    anytype.WithAppKey("test-app-key"),
+//	    anytype.WithNoMiddleware(true), // Disable middleware for testing
+//	)
+func WithNoMiddleware(disable bool) ClientOption {
+	return func(c *Client) {
+		c.noMiddleware = disable
+	}
+}
+
 // NewClient creates a new Anytype API client with the specified options.
 //
 // By default, the client uses the local Anytype API URL (http://localhost:31009) and
@@ -228,6 +248,17 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 
 	if client.appKey == "" {
 		return nil, fmt.Errorf("app key is required")
+	}
+
+	// Apply default middleware only if not explicitly disabled
+	if !client.noMiddleware {
+		// Add retry middleware with rate limit handling
+		client.WithRetry()
+
+		// If debug is enabled, add logging middleware
+		if client.debug && client.logger != nil {
+			client.WithLogging()
+		}
 	}
 
 	return client, nil

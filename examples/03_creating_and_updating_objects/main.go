@@ -13,7 +13,9 @@ import (
 func main() {
 	// Create auth manager and get client
 	authManager := auth.NewAuthManager()
-	client, err := authManager.GetClient()
+	client, err := authManager.GetClient(
+		anytype.WithDebug(true), // Enable debug logging
+	)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
@@ -107,6 +109,10 @@ func main() {
 			Format: "emoji",
 			Emoji:  "📌",
 		},
+		Type: &anytype.TypeInfo{
+			Key:  "ot-note", // Preserve the Type.Key to ensure validation passes
+			Name: "Note",
+		},
 		Tags: []string{"meeting", "example", "updated"},
 	}
 
@@ -118,19 +124,11 @@ func main() {
 	fmt.Printf("Updated object: %s (ID: %s)\n", updatedObject.Name, updatedObject.ID)
 	fmt.Printf("Type: %s, Tags: %v\n", updatedObject.Type.Name, updatedObject.Tags)
 
-	// Delete the task (uncomment if you want to actually delete)
-	/*
-		fmt.Println("\n=== Deleting the Task ===")
-		err = client.DeleteObject(ctx, spaceID, createdTask.ID)
-		if err != nil {
-			log.Fatalf("Failed to delete object: %v", err)
-		}
+	// Delete the task 
+	fmt.Println("\n=== Deleting the Task ===")
+	err = client.DeleteObject(ctx, spaceID, createdTask.ID)
+	if err != nil {
+		log.Fatalf("Failed to delete object: %v", err)
+	}
 		fmt.Println("Task successfully deleted")
-	*/
-
-	// Instead, just show how to call the delete method
-	fmt.Println("\n=== How to Delete an Object ===")
-	fmt.Printf("// To delete an object, use:\n")
-	fmt.Printf("err := client.DeleteObject(ctx, \"%s\", \"%s\")\n", spaceID, createdTask.ID)
-	fmt.Printf("if err != nil {\n\tlog.Fatalf(\"Failed to delete object: %%v\", err)\n}\n")
-}
+	}

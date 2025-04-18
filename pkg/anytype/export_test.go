@@ -61,6 +61,7 @@ More content here.
 	client, err := NewClient(
 		WithURL(testServer.URL),
 		WithAppKey("test-app-key"),
+		WithNoMiddleware(true),     // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)

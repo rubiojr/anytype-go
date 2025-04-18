@@ -1,8 +1,6 @@
 package anytype
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -72,22 +70,4 @@ func TestFromAuthConfig(t *testing.T) {
 	// We can't directly test private fields, so we'll just verify the client was created
 }
 
-// createMockServerForClient creates a test server that returns the given response
-func createMockServerForClient(t *testing.T, statusCode int, response string) (*httptest.Server, *Client) {
-	// Create a test server that returns the response
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(statusCode)
-		w.Write([]byte(response))
-	}))
 
-	// Create a client that points to the test server
-	client, err := NewClient(
-		WithURL(server.URL),
-		WithAppKey("test-app-key"), // Add app key for tests
-	)
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
-	return server, client
-}

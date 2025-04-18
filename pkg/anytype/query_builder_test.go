@@ -74,6 +74,7 @@ func TestQueryBuilder(t *testing.T) {
 	client, err := NewClient(
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -142,6 +143,7 @@ func TestQueryBuilderWithCallback(t *testing.T) {
 	client, err := NewClient(
 		WithURL(server.URL),
 		WithAppKey("test-app-key"),
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
