@@ -9,7 +9,7 @@ const (
 	// - MAJOR version changes with incompatible API changes
 	// - MINOR version adds functionality in a backwards compatible manner
 	// - PATCH version makes backwards compatible bug fixes
-	Version = "0.2.0-alpha.2"
+	Version = "0.2.1-alpha"
 
 	// APIVersion is the Anytype API version this client is designed to work with
 	APIVersion = apiVersion

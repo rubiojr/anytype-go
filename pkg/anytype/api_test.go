@@ -378,7 +378,10 @@ func TestCreateObject(t *testing.T) {
 
 	// Call the method
 	ctx := context.Background()
-	createdObject, err := client.CreateObject(ctx, "space123", newObject)
+	createdObject, err := client.CreateObject(ctx, &CreateObjectParams{
+		SpaceID: "space123",
+		Object:  newObject,
+	})
 
 	// Check for errors
 	if err != nil {
@@ -490,7 +493,11 @@ func TestUpdateObject(t *testing.T) {
 
 	// Call the method
 	ctx := context.Background()
-	updatedObject, err := client.UpdateObject(ctx, "space123", "obj123", updateObject)
+	updatedObject, err := client.UpdateObject(ctx, &UpdateObjectParams{
+		SpaceID:  "space123",
+		ObjectID: "obj123",
+		Object:   updateObject,
+	})
 
 	// Check for errors
 	if err != nil {
@@ -561,7 +568,10 @@ func TestDeleteObject(t *testing.T) {
 
 	// Call the method
 	ctx := context.Background()
-	err = client.DeleteObject(ctx, "space123", "obj123")
+	err = client.DeleteObject(ctx, &DeleteObjectParams{
+		SpaceID:  "space123",
+		ObjectID: "obj123",
+	})
 
 	// Check for errors
 	if err != nil {

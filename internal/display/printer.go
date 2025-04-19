@@ -10,7 +10,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/epheo/anytype-go/internal/log"
 	"github.com/epheo/anytype-go/pkg/anytype"
+
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -20,14 +22,14 @@ type printer struct {
 	format    string
 	useColors bool
 	debug     bool
-	logLevel  LogLevel
+	logLevel  log.Level
 }
 
 // NewPrinter creates a new Printer instance
 func NewPrinter(format string, useColors bool, debug bool) *printer {
-	logLevel := LogLevelInfo
+	logLevel := log.LevelInfo
 	if debug {
-		logLevel = LogLevelDebug
+		logLevel = log.LevelDebug
 	}
 	return &printer{
 		writer:    os.Stdout,
@@ -44,12 +46,12 @@ func (p *printer) SetWriter(w io.Writer) {
 }
 
 // SetLogLevel sets the current log level
-func (p *printer) SetLogLevel(level LogLevel) {
+func (p *printer) SetLogLevel(level log.Level) {
 	p.logLevel = level
 }
 
 // GetLogLevel returns the current log level
-func (p *printer) GetLogLevel() LogLevel {
+func (p *printer) GetLogLevel() log.Level {
 	return p.logLevel
 }
 
@@ -213,7 +215,7 @@ func (p *printer) PrintSuccess(format string, args ...interface{}) {
 		return
 	}
 
-	if p.logLevel >= LogLevelInfo {
+	if p.logLevel >= log.LevelInfo {
 		prefix := "Success: "
 		if p.useColors {
 			prefix = colorGreen + "Success:" + colorReset + " "
@@ -229,7 +231,7 @@ func (p *printer) PrintInfo(format string, args ...interface{}) {
 		return
 	}
 
-	if p.logLevel >= LogLevelInfo {
+	if p.logLevel >= log.LevelInfo {
 		prefix := "Info: "
 		if p.useColors {
 			prefix = colorBlue + "Info:" + colorReset + " "
@@ -245,7 +247,7 @@ func (p *printer) PrintDebug(format string, args ...interface{}) {
 		return
 	}
 
-	if p.logLevel >= LogLevelDebug {
+	if p.logLevel >= log.LevelDebug {
 		prefix := "Debug: "
 		if p.useColors {
 			prefix = colorCyan + "Debug:" + colorReset + " "

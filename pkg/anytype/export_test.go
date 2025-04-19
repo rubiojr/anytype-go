@@ -2,7 +2,6 @@ package anytype
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,7 +11,7 @@ import (
 // TestExportObject tests the ExportObject method with a mocked API response
 func TestExportObject(t *testing.T) {
 	// Create a temporary directory for exports
-	tempDir, err := ioutil.TempDir("", "anytype-export-test")
+	tempDir, err := os.MkdirTemp("", "anytype-export-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
@@ -61,7 +60,7 @@ More content here.
 	client, err := NewClient(
 		WithURL(testServer.URL),
 		WithAppKey("test-app-key"),
-		WithNoMiddleware(true),     // Disable middleware for tests
+		WithNoMiddleware(true), // Disable middleware for tests
 	)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
@@ -69,7 +68,13 @@ More content here.
 
 	// Call the export method
 	ctx := context.Background()
-	filePath, err := client.ExportObject(ctx, "space123", "obj123", tempDir, "md")
+	params := &ExportObjectParams{
+		SpaceID:    "space123",
+		ObjectID:   "obj123",
+		ExportPath: tempDir,
+		Format:     "md",
+	}
+	filePath, err := client.ExportObject(ctx, params)
 
 	// Check for errors
 	if err != nil {
@@ -82,7 +87,7 @@ More content here.
 	}
 
 	// Read the exported file
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read exported file: %v", err)
 	}
@@ -96,7 +101,7 @@ More content here.
 // TestExportObjects tests the ExportObjects method with multiple objects
 func TestExportObjects(t *testing.T) {
 	// Create a temporary directory for exports
-	tempDir, err := ioutil.TempDir("", "anytype-export-test-multi")
+	tempDir, err := os.MkdirTemp("", "anytype-export-test-multi")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
@@ -163,7 +168,13 @@ func TestExportObjects(t *testing.T) {
 
 	// Call the export method
 	ctx := context.Background()
-	filePaths, err := client.ExportObjects(ctx, "space123", objects, tempDir, "md")
+	params := &ExportObjectsParams{
+		SpaceID:    "space123",
+		Objects:    objects,
+		ExportPath: tempDir,
+		Format:     "md",
+	}
+	filePaths, err := client.ExportObjects(ctx, params)
 
 	// Check for errors
 	if err != nil {
@@ -183,7 +194,7 @@ func TestExportObjects(t *testing.T) {
 	}
 
 	// Read and verify first file
-	content1, err := ioutil.ReadFile(filePaths[0])
+	content1, err := os.ReadFile(filePaths[0])
 	if err != nil {
 		t.Fatalf("Failed to read first exported file: %v", err)
 	}
@@ -192,7 +203,7 @@ func TestExportObjects(t *testing.T) {
 	}
 
 	// Read and verify second file
-	content2, err := ioutil.ReadFile(filePaths[1])
+	content2, err := os.ReadFile(filePaths[1])
 	if err != nil {
 		t.Fatalf("Failed to read second exported file: %v", err)
 	}
@@ -210,25 +221,45 @@ func TestExportValidation(t *testing.T) {
 	ctx := context.Background()
 
 	// Test with empty space ID
-	_, err = client.ExportObject(ctx, "", "obj123", "/tmp", "md")
+	_, err = client.ExportObject(ctx, &ExportObjectParams{
+		SpaceID:    "",
+		ObjectID:   "obj123",
+		ExportPath: "/tmp",
+		Format:     "md",
+	})
 	if err == nil {
 		t.Fatal("ExportObject should fail with empty space ID")
 	}
 
 	// Test with empty object ID
-	_, err = client.ExportObject(ctx, "space123", "", "/tmp", "md")
+	_, err = client.ExportObject(ctx, &ExportObjectParams{
+		SpaceID:    "space123",
+		ObjectID:   "",
+		ExportPath: "/tmp",
+		Format:     "md",
+	})
 	if err == nil {
 		t.Fatal("ExportObject should fail with empty object ID")
 	}
 
 	// Test with empty export path
-	_, err = client.ExportObject(ctx, "space123", "obj123", "", "md")
+	_, err = client.ExportObject(ctx, &ExportObjectParams{
+		SpaceID:    "space123",
+		ObjectID:   "obj123",
+		ExportPath: "",
+		Format:     "md",
+	})
 	if err == nil {
 		t.Fatal("ExportObject should fail with empty export path")
 	}
 
 	// Test ExportObjects with empty object list
-	_, err = client.ExportObjects(ctx, "space123", []Object{}, "/tmp", "md")
+	_, err = client.ExportObjects(ctx, &ExportObjectsParams{
+		SpaceID:    "space123",
+		Objects:    []Object{},
+		ExportPath: "/tmp",
+		Format:     "md",
+	})
 	if err == nil {
 		t.Fatal("ExportObjects should fail with empty object list")
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/epheo/anytype-go/internal/display"
+	"github.com/epheo/anytype-go/internal/log"
 	"github.com/epheo/anytype-go/pkg/anytype"
 	"github.com/epheo/anytype-go/pkg/auth"
 )
@@ -67,14 +68,17 @@ func main() {
 //   - A configured display printer for output formatting
 //   - Any error encountered during setup
 func setupClient(f *flags) (*anytype.Client, display.Printer, error) {
-	// Initialize display
-	printer := display.NewPrinter(f.format, !f.noColor, f.debug)
+	// Determine if debug mode should be enabled (either debug flag or loglevel=debug)
+	isDebug := f.debug || strings.ToLower(f.logLevel) == "debug"
 
-	// Set log level (debug flag overrides loglevel flag)
-	if f.debug {
-		printer.SetLogLevel(display.LogLevelDebug)
+	// Initialize display with consistent debug flag
+	printer := display.NewPrinter(f.format, !f.noColor, isDebug)
+
+	// Set log level based on the combined debug setting
+	if isDebug {
+		printer.SetLogLevel(log.LevelDebug)
 	} else {
-		level := display.ParseLogLevel(f.logLevel)
+		level := log.ParseLevel(f.logLevel)
 		printer.SetLogLevel(level)
 	}
 
@@ -85,9 +89,9 @@ func setupClient(f *flags) (*anytype.Client, display.Printer, error) {
 		auth.WithSilent(false),         // Show informational messages
 	)
 
-	// Set up the client options
+	// Set up the client options with consistent debug behavior
 	clientOpts := []anytype.ClientOption{
-		anytype.WithDebug(f.debug),
+		anytype.WithDebug(isDebug), // Use combined debug flag
 		anytype.WithCurl(f.curl),
 	}
 
@@ -116,9 +120,6 @@ func setupClient(f *flags) (*anytype.Client, display.Printer, error) {
 // Returns:
 //   - A pointer to the selected Space
 //   - Any error encountered during the process
-//
-// The function delegates to findTargetSpace to select the appropriate space based
-// on the provided spaceName.
 func setupSpaces(ctx context.Context, client *anytype.Client, spaceName string, printer display.Printer) (*anytype.Space, error) {
 	// Get spaces
 	spaces, err := client.GetSpaces(ctx)
@@ -130,29 +131,7 @@ func setupSpaces(ctx context.Context, client *anytype.Client, spaceName string, 
 		return nil, fmt.Errorf("failed to display spaces: %w", err)
 	}
 
-	// Find target space
-	return findTargetSpace(spaces, spaceName, printer)
-}
-
-// findTargetSpace finds the target space based on name or returns the first available.
-//
-// This function searches through the available spaces for one matching the provided
-// spaceName. If a matching space is found, it returns that space. If no match is found
-// and spaces are available, it returns the first space. If no spaces are available,
-// it returns an error.
-//
-// Parameters:
-//   - spaces: Response containing available spaces
-//   - spaceName: Name of the space to look for (can be empty)
-//   - printer: Display printer for output formatting
-//
-// Returns:
-//   - A pointer to the selected Space
-//   - An error if no spaces are available or if a specified space name cannot be found
-//
-// This function is typically called by setupSpaces after retrieving the list of spaces
-// from the Anytype API.
-func findTargetSpace(spaces *anytype.SpacesResponse, spaceName string, printer display.Printer) (*anytype.Space, error) {
+	// Find target space by name
 	for _, space := range spaces.Data {
 		if space.Name == spaceName {
 			spacePtr := space
@@ -161,6 +140,7 @@ func findTargetSpace(spaces *anytype.SpacesResponse, spaceName string, printer d
 		}
 	}
 
+	// Use first space as default
 	if len(spaces.Data) > 0 {
 		spacePtr := spaces.Data[0]
 		printer.PrintInfo("Using default space: %s (%s)", spacePtr.Name, spacePtr.ID)
@@ -181,7 +161,10 @@ func processTypeFilters(ctx context.Context, client *anytype.Client, spaceID str
 			continue
 		}
 
-		typeKey, err := client.GetTypeByName(ctx, spaceID, typeName)
+		typeKey, err := client.GetTypeByName(ctx, &anytype.GetTypeByNameParams{
+			SpaceID: spaceID,
+			TypeName: typeName,
+		})
 		if err != nil {
 			printer.PrintError("Could not find type '%s': %v", typeName, err)
 		} else if typeKey != "" {
@@ -215,7 +198,13 @@ func handleSearch(ctx context.Context, client *anytype.Client, targetSpace *anyt
 			return fmt.Errorf("failed to create export directory: %w", err)
 		}
 
-		exportedFiles, err := client.ExportObjects(ctx, targetSpace.ID, results.Data, exportOptions.path, exportOptions.format)
+		exportParams := &anytype.ExportObjectsParams{
+			SpaceID:    targetSpace.ID,
+			Objects:    results.Data,
+			ExportPath: exportOptions.path,
+			Format:     exportOptions.format,
+		}
+		exportedFiles, err := client.ExportObjects(ctx, exportParams)
 		if err != nil {
 			return fmt.Errorf("export failed: %w", err)
 		}
@@ -227,18 +216,6 @@ func handleSearch(ctx context.Context, client *anytype.Client, targetSpace *anyt
 	}
 
 	return nil
-}
-
-// handleDefaultExport performs a default export of all objects when no search parameters are provided
-func handleDefaultExport(ctx context.Context, client *anytype.Client, targetSpace *anytype.Space, exportOpts *exportOptions, printer display.Printer) error {
-	printer.PrintInfo("No search parameters provided, exporting all objects from space %s (%s)", targetSpace.Name, targetSpace.ID)
-
-	searchParams := &anytype.SearchParams{
-		Types: []string{"ot-page"}, // Default to ot-page type
-		Limit: 100,
-	}
-
-	return handleSearch(ctx, client, targetSpace, searchParams, printer, exportOpts)
 }
 
 // prepareSearchParams creates and populates a SearchParams object based on command line flags.
@@ -318,37 +295,6 @@ func setupExportOptions(f *flags, printer display.Printer) *exportOptions {
 	return exportOpts
 }
 
-// handleSearchCase prepares search parameters and executes the search.
-//
-// This function handles the search case when user provides search parameters via flags.
-// It first prepares the search parameters based on the command line flags, then delegates
-// to handleSearch to execute the search and process the results, including any export
-// operations if requested.
-//
-// Parameters:
-//   - ctx: Context for the API request
-//   - client: The initialized Anytype API client
-//   - targetSpace: The space to search within
-//   - f: Parsed command line flags containing search criteria
-//   - printer: Display printer for output formatting
-//   - exportOpts: Export options if export is enabled, or nil
-//
-// Returns:
-//   - Any error encountered during search parameter preparation or execution
-//
-// This function is called from the main run() function when search parameters
-// are detected in the command line flags.
-func handleSearchCase(ctx context.Context, client *anytype.Client, targetSpace *anytype.Space, f *flags, printer display.Printer, exportOpts *exportOptions) error {
-	// Prepare search parameters
-	searchParams, err := prepareSearchParams(ctx, client, targetSpace.ID, f, printer)
-	if err != nil {
-		return err
-	}
-
-	// Execute search and handle results
-	return handleSearch(ctx, client, targetSpace, searchParams, printer, exportOpts)
-}
-
 func run() error {
 	// Parse command line flags
 	f := parseFlags()
@@ -383,14 +329,24 @@ func run() error {
 	hasSearchParams := f.query != "" || f.tags != "" || f.typeName != "" || f.types != ""
 
 	if hasSearchParams {
-		// Handle search case
-		if err := handleSearchCase(ctx, client, targetSpace, f, printer, exportOpts); err != nil {
+		// Prepare search parameters
+		searchParams, err := prepareSearchParams(ctx, client, targetSpace.ID, f, printer)
+		if err != nil {
+			return err
+		}
+		// Execute the search
+		if err := handleSearch(ctx, client, targetSpace, searchParams, printer, exportOpts); err != nil {
 			return err
 		}
 	} else if f.export {
 		// If export is enabled but no search parameters are provided,
-		// perform default export
-		if err := handleDefaultExport(ctx, client, targetSpace, exportOpts, printer); err != nil {
+		// perform default export with ot-page type
+		printer.PrintInfo("No search parameters provided, exporting all objects from space %s (%s)", targetSpace.Name, targetSpace.ID)
+		searchParams := &anytype.SearchParams{
+			Types: []string{"ot-page"}, // Default to ot-page type
+			Limit: 100,
+		}
+		if err := handleSearch(ctx, client, targetSpace, searchParams, printer, exportOpts); err != nil {
 			return err
 		}
 	} else {

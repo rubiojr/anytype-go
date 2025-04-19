@@ -73,11 +73,6 @@ func ParseSearchResponse(data []byte, debug bool, logger log.Logger) (*SearchRes
 	return nil, err
 }
 
-// NewError creates a simple error with a message
-func NewError(message string) error {
-	return &SearchError{Message: message}
-}
-
 // SearchError represents an error in search processing
 type SearchError struct {
 	Message string

@@ -45,7 +45,11 @@ func (qb *QueryBuilder) WithType(ctx context.Context, typeName string) *QueryBui
 		return qb
 	}
 
-	typeKey, err := qb.client.GetTypeByName(ctx, qb.spaceID, typeName)
+	params := &GetTypeByNameParams{
+		SpaceID:   qb.spaceID,
+		TypeName:  typeName,
+	}
+	typeKey, err := qb.client.GetTypeByName(ctx, params)
 	if err != nil {
 		qb.err = fmt.Errorf("failed to resolve type name '%s': %w", typeName, err)
 		return qb

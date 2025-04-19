@@ -13,6 +13,50 @@ import (
 // The API officially supports only "markdown" format
 var SupportedExportFormats = []string{"markdown"}
 
+// ExportObjectParams represents parameters for exporting a single object
+type ExportObjectParams struct {
+	SpaceID    string `json:"space_id"`    // Space ID the object belongs to
+	ObjectID   string `json:"object_id"`   // Object ID to export
+	ExportPath string `json:"export_path"` // Path to export the file to
+	Format     string `json:"format"`      // Export format (e.g., "md", "html")
+}
+
+// Validate validates ExportObjectParams fields
+func (p *ExportObjectParams) Validate() error {
+	if p.SpaceID == "" {
+		return ErrInvalidSpaceID
+	}
+	if p.ObjectID == "" {
+		return ErrInvalidObjectID
+	}
+	if p.ExportPath == "" {
+		return fmt.Errorf("export path cannot be empty")
+	}
+	return nil
+}
+
+// ExportObjectsParams represents parameters for exporting multiple objects
+type ExportObjectsParams struct {
+	SpaceID    string   `json:"space_id"`    // Space ID the objects belong to
+	Objects    []Object `json:"objects"`     // Objects to export
+	ExportPath string   `json:"export_path"` // Path to export the files to
+	Format     string   `json:"format"`      // Export format (e.g., "md", "html")
+}
+
+// Validate validates ExportObjectsParams fields
+func (p *ExportObjectsParams) Validate() error {
+	if p.SpaceID == "" {
+		return ErrInvalidSpaceID
+	}
+	if len(p.Objects) == 0 {
+		return fmt.Errorf("no objects to export")
+	}
+	if p.ExportPath == "" {
+		return fmt.Errorf("export path cannot be empty")
+	}
+	return nil
+}
+
 // ExportObject exports a single object to a file in the specified format.
 //
 // This method allows you to export an Anytype object to a file on disk. The object
@@ -27,7 +71,14 @@ var SupportedExportFormats = []string{"markdown"}
 // Example:
 //
 //	// Export a document as markdown
-//	filePath, err := client.ExportObject(ctx, "space123", "obj456", "./exports", "md")
+//	params := &anytype.ExportObjectParams{
+//	    SpaceID:    "space123",
+//	    ObjectID:   "obj456",
+//	    ExportPath: "./exports",
+//	    Format:     "md",
+//	}
+//
+//	filePath, err := client.ExportObject(ctx, params)
 //	if err != nil {
 //	    log.Fatalf("Failed to export object: %v", err)
 //	}
@@ -35,23 +86,27 @@ var SupportedExportFormats = []string{"markdown"}
 //	fmt.Printf("Object exported to: %s\n", filePath)
 //
 //	// Export a document as HTML
-//	filePath, err := client.ExportObject(ctx, "space123", "obj456", "./exports", "html")
+//	htmlParams := &anytype.ExportObjectParams{
+//	    SpaceID:    "space123",
+//	    ObjectID:   "obj456",
+//	    ExportPath: "./exports",
+//	    Format:     "html",
+//	}
+//
+//	filePath, err := client.ExportObject(ctx, htmlParams)
 //	if err != nil {
 //	    log.Fatalf("Failed to export object: %v", err)
 //	}
-func (c *Client) ExportObject(ctx context.Context, spaceID, objectID, exportPath, format string) (string, error) {
-	if spaceID == "" {
-		return "", ErrInvalidSpaceID
+func (c *Client) ExportObject(ctx context.Context, params *ExportObjectParams) (string, error) {
+	if params == nil {
+		return "", ErrInvalidParameter
 	}
-	if objectID == "" {
-		return "", ErrInvalidObjectID
-	}
-	if exportPath == "" {
-		return "", fmt.Errorf("export path cannot be empty")
+	if err := params.Validate(); err != nil {
+		return "", err
 	}
 
 	// Normalize format
-	format = strings.ToLower(format)
+	format := strings.ToLower(params.Format)
 
 	// Convert "md" to "markdown" for API calls
 	if format == "md" {
@@ -77,11 +132,11 @@ func (c *Client) ExportObject(ctx context.Context, spaceID, objectID, exportPath
 
 	// Get the object to get its metadata
 	object, err := c.GetObject(ctx, &GetObjectParams{
-		SpaceID:  spaceID,
-		ObjectID: objectID,
+		SpaceID:  params.SpaceID,
+		ObjectID: params.ObjectID,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to get object %s: %w", objectID, err)
+		return "", fmt.Errorf("failed to get object %s: %w", params.ObjectID, err)
 	}
 
 	// Get type name for the subdirectory
@@ -91,7 +146,7 @@ func (c *Client) ExportObject(ctx context.Context, spaceID, objectID, exportPath
 	}
 
 	// Create type-specific subdirectory
-	typeSubdir := filepath.Join(exportPath, typeName)
+	typeSubdir := filepath.Join(params.ExportPath, typeName)
 	if err := os.MkdirAll(typeSubdir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create export directory: %w", err)
 	}
@@ -118,7 +173,7 @@ func (c *Client) ExportObject(ctx context.Context, spaceID, objectID, exportPath
 
 	// Use object ID as fallback only if name is empty or becomes empty after sanitization
 	if sanitizedName == "" {
-		sanitizedName = fmt.Sprintf("object-%s", objectID)
+		sanitizedName = fmt.Sprintf("object-%s", params.ObjectID)
 	}
 
 	// Determine proper file extension based on the format
@@ -135,7 +190,7 @@ func (c *Client) ExportObject(ctx context.Context, spaceID, objectID, exportPath
 	filePath := filepath.Join(typeSubdir, filename)
 
 	// Get object content in the requested format
-	content, err := c.getObjectContent(ctx, spaceID, objectID, format)
+	content, err := c.getObjectContent(ctx, params.SpaceID, params.ObjectID, format)
 	if err != nil {
 		return "", fmt.Errorf("failed to get object content: %w", err)
 	}
@@ -145,7 +200,7 @@ func (c *Client) ExportObject(ctx context.Context, spaceID, objectID, exportPath
 		if c.logger != nil {
 			c.logger.Debug("Processing images in markdown content")
 		}
-		processedContent, err := c.ProcessMarkdownImages(ctx, content, exportPath)
+		processedContent, err := c.ProcessMarkdownImages(ctx, content, params.ExportPath)
 		if err != nil {
 			// Log the error but continue with the original content
 			if c.logger != nil {
@@ -311,7 +366,14 @@ func (c *Client) extractObjectContentFromRegularEndpoint(ctx context.Context, sp
 //	}
 //
 //	// Export all found objects as markdown
-//	exportedFiles, err := client.ExportObjects(ctx, "space123", results.Data, "./exports", "md")
+//	exportParams := &anytype.ExportObjectsParams{
+//	    SpaceID:    "space123",
+//	    Objects:    results.Data,
+//	    ExportPath: "./exports",
+//	    Format:     "md",
+//	}
+//
+//	exportedFiles, err := client.ExportObjects(ctx, exportParams)
 //	if err != nil {
 //	    log.Fatalf("Failed to export objects: %v", err)
 //	}
@@ -320,16 +382,26 @@ func (c *Client) extractObjectContentFromRegularEndpoint(ctx context.Context, sp
 //	for i, file := range exportedFiles {
 //	    fmt.Printf("%d. %s\n", i+1, file)
 //	}
-func (c *Client) ExportObjects(ctx context.Context, spaceID string, objects []Object, exportPath, format string) ([]string, error) {
-	if len(objects) == 0 {
-		return nil, fmt.Errorf("no objects to export")
+func (c *Client) ExportObjects(ctx context.Context, params *ExportObjectsParams) ([]string, error) {
+	if params == nil {
+		return nil, ErrInvalidParameter
+	}
+	if err := params.Validate(); err != nil {
+		return nil, err
 	}
 
-	exportedFiles := make([]string, 0, len(objects))
+	exportedFiles := make([]string, 0, len(params.Objects))
 	errors := make([]string, 0)
 
-	for _, obj := range objects {
-		filePath, err := c.ExportObject(ctx, spaceID, obj.ID, exportPath, format)
+	for _, obj := range params.Objects {
+		exportParams := &ExportObjectParams{
+			SpaceID:    params.SpaceID,
+			ObjectID:   obj.ID,
+			ExportPath: params.ExportPath,
+			Format:     params.Format,
+		}
+
+		filePath, err := c.ExportObject(ctx, exportParams)
 		if err != nil {
 			// Log error but continue with other objects
 			errMsg := fmt.Sprintf("Failed to export object %s (%s): %v", obj.ID, obj.Name, err)

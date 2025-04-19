@@ -14,6 +14,7 @@ var (
 	ErrInvalidTypeID    = errors.New("invalid type ID")
 	ErrInvalidTemplate  = errors.New("invalid template")
 	ErrInvalidParameter = errors.New("invalid parameter")
+	ErrInvalidImageURL  = errors.New("image URL cannot be empty")
 
 	// API-related errors
 	ErrEmptyResponse      = errors.New("empty response from API")
@@ -51,6 +52,11 @@ func (e *Error) Error() string {
 		return fmt.Sprintf("API error: %s - %s - %s", e.Path, e.Message, e.Details)
 	}
 	return fmt.Sprintf("API error: %s - %s", e.Path, e.Message)
+}
+
+// NewError creates a simple error with a message
+func NewError(message string) error {
+	return &SearchError{Message: message}
 }
 
 // Unwrap returns the underlying error

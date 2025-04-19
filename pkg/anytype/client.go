@@ -52,6 +52,70 @@ type Client struct {
 	noMiddleware bool                         // Whether middleware should be disabled (useful for testing)
 }
 
+// NewClient creates a new Anytype API client with the specified options.
+//
+// By default, the client uses the local Anytype API URL (http://localhost:31009) and
+// a 10-second HTTP timeout. You can customize these and other settings using the
+// various WithX option functions.
+//
+// The appKey is required for authentication. If not provided via options,
+// an error will be returned.
+//
+// Example:
+//
+//	// Create a client with default settings
+//	client, err := anytype.NewClient(
+//	    anytype.WithAppKey("your-app-key"),
+//	    anytype.WithToken("your-session-token"),
+//	)
+//	if err != nil {
+//	    log.Fatalf("Failed to create client: %v", err)
+//	}
+//
+//	// Create a client with custom settings
+//	client, err := anytype.NewClient(
+//	    anytype.WithAppKey("your-app-key"),
+//	    anytype.WithToken("your-session-token"),
+//	    anytype.WithURL("https://custom-anytype-server.com"),
+//	    anytype.WithDebug(true),
+//	    anytype.WithTimeout(30 * time.Second),
+//	)
+func NewClient(opts ...ClientOption) (*Client, error) {
+	client := &Client{
+		apiURL:     defaultAPIURL, // Default API URL
+		httpClient: &http.Client{Timeout: httpTimeout},
+		debug:      false,
+		typeCache:  make(map[string]map[string]string),
+	}
+
+	// Apply options
+	for _, opt := range opts {
+		opt(client)
+	}
+
+	// Validate required fields
+	if client.apiURL == "" {
+		return nil, fmt.Errorf("API URL is required")
+	}
+
+	if client.appKey == "" {
+		return nil, fmt.Errorf("app key is required")
+	}
+
+	// Apply default middleware only if not explicitly disabled
+	if !client.noMiddleware {
+		// Add retry middleware with rate limit handling
+		client.WithRetry()
+
+		// If debug is enabled, add logging middleware
+		if client.debug && client.logger != nil {
+			client.WithLogging()
+		}
+	}
+
+	return client, nil
+}
+
 // WithTimeout sets a custom timeout for the HTTP client.
 //
 // The timeout specifies the maximum duration for HTTP requests before they time out.
@@ -200,70 +264,6 @@ func WithNoMiddleware(disable bool) ClientOption {
 	}
 }
 
-// NewClient creates a new Anytype API client with the specified options.
-//
-// By default, the client uses the local Anytype API URL (http://localhost:31009) and
-// a 10-second HTTP timeout. You can customize these and other settings using the
-// various WithX option functions.
-//
-// The appKey is required for authentication. If not provided via options,
-// an error will be returned.
-//
-// Example:
-//
-//	// Create a client with default settings
-//	client, err := anytype.NewClient(
-//	    anytype.WithAppKey("your-app-key"),
-//	    anytype.WithToken("your-session-token"),
-//	)
-//	if err != nil {
-//	    log.Fatalf("Failed to create client: %v", err)
-//	}
-//
-//	// Create a client with custom settings
-//	client, err := anytype.NewClient(
-//	    anytype.WithAppKey("your-app-key"),
-//	    anytype.WithToken("your-session-token"),
-//	    anytype.WithURL("https://custom-anytype-server.com"),
-//	    anytype.WithDebug(true),
-//	    anytype.WithTimeout(30 * time.Second),
-//	)
-func NewClient(opts ...ClientOption) (*Client, error) {
-	client := &Client{
-		apiURL:     defaultAPIURL, // Default API URL
-		httpClient: &http.Client{Timeout: httpTimeout},
-		debug:      false,
-		typeCache:  make(map[string]map[string]string),
-	}
-
-	// Apply options
-	for _, opt := range opts {
-		opt(client)
-	}
-
-	// Validate required fields
-	if client.apiURL == "" {
-		return nil, fmt.Errorf("API URL is required")
-	}
-
-	if client.appKey == "" {
-		return nil, fmt.Errorf("app key is required")
-	}
-
-	// Apply default middleware only if not explicitly disabled
-	if !client.noMiddleware {
-		// Add retry middleware with rate limit handling
-		client.WithRetry()
-
-		// If debug is enabled, add logging middleware
-		if client.debug && client.logger != nil {
-			client.WithLogging()
-		}
-	}
-
-	return client, nil
-}
-
 // FromAuthConfig creates a new client from an AuthConfig
 func FromAuthConfig(config *AuthConfig, additionalOpts ...ClientOption) (*Client, error) {
 	if config == nil {
@@ -305,6 +305,51 @@ func FromEnvironment(additionalOpts ...ClientOption) (*Client, error) {
 
 	return NewClient(opts...)
 }
+
+// GetTypeName returns the friendly name for a type key, using cache if available
+func (c *Client) GetTypeName(ctx context.Context, spaceID, typeKey string) string {
+	// Check cache first
+	if cache, ok := c.typeCache[spaceID]; ok {
+		if name, ok := cache[typeKey]; ok {
+			return name
+		}
+	}
+
+	// Initialize cache for this space if needed
+	if _, ok := c.typeCache[spaceID]; !ok {
+		c.typeCache[spaceID] = make(map[string]string)
+	}
+
+	// If cache is empty for this space, fetch all types at once
+	// instead of doing it for each type key separately
+	if len(c.typeCache[spaceID]) == 0 {
+		// Fetch all types and update cache
+		types, err := c.GetTypes(ctx, &GetTypesParams{SpaceID: spaceID})
+		if err != nil {
+			return typeKey // Return original key if error
+		}
+
+		// Update cache with all types
+		for _, t := range types.Data {
+			c.typeCache[spaceID][t.Key] = t.Name
+		}
+	}
+
+	// Return cached value or original key if not found
+	if name, ok := c.typeCache[spaceID][typeKey]; ok {
+		return name
+	}
+	return typeKey
+}
+
+// Version returns the current version information for the SDK
+func (c *Client) Version() VersionInfo {
+	return GetVersionInfo()
+}
+
+//
+// UTILS:
+//
 
 // getEnvOrDefault gets an environment variable or returns a default value
 func getEnvOrDefault(key, defaultValue string) string {
@@ -435,45 +480,4 @@ func (c *Client) printCurlRequest(method, url string, headers http.Header, body 
 	} else {
 		fmt.Printf("CURL command:\n%s\n", sb.String())
 	}
-}
-
-// GetTypeName returns the friendly name for a type key, using cache if available
-func (c *Client) GetTypeName(ctx context.Context, spaceID, typeKey string) string {
-	// Check cache first
-	if cache, ok := c.typeCache[spaceID]; ok {
-		if name, ok := cache[typeKey]; ok {
-			return name
-		}
-	}
-
-	// Initialize cache for this space if needed
-	if _, ok := c.typeCache[spaceID]; !ok {
-		c.typeCache[spaceID] = make(map[string]string)
-	}
-
-	// If cache is empty for this space, fetch all types at once
-	// instead of doing it for each type key separately
-	if len(c.typeCache[spaceID]) == 0 {
-		// Fetch all types and update cache
-		types, err := c.GetTypes(ctx, &GetTypesParams{SpaceID: spaceID})
-		if err != nil {
-			return typeKey // Return original key if error
-		}
-
-		// Update cache with all types
-		for _, t := range types.Data {
-			c.typeCache[spaceID][t.Key] = t.Name
-		}
-	}
-
-	// Return cached value or original key if not found
-	if name, ok := c.typeCache[spaceID][typeKey]; ok {
-		return name
-	}
-	return typeKey
-}
-
-// Version returns the current version information for the SDK
-func (c *Client) Version() VersionInfo {
-	return GetVersionInfo()
 }

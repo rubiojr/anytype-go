@@ -54,7 +54,10 @@ func main() {
 		// You can add more fields as needed
 	}
 
-	createdNote, err := client.CreateObject(ctx, spaceID, newNote)
+	createdNote, err := client.CreateObject(ctx, &anytype.CreateObjectParams{
+		SpaceID: spaceID,
+		Object:  newNote,
+	})
 	if err != nil {
 		log.Fatalf("Failed to create note: %v", err)
 	}
@@ -78,7 +81,10 @@ func main() {
 		// Add task-specific properties if needed
 	}
 
-	createdTask, err := client.CreateObject(ctx, spaceID, newTask)
+	createdTask, err := client.CreateObject(ctx, &anytype.CreateObjectParams{
+		SpaceID: spaceID,
+		Object:  newTask,
+	})
 	if err != nil {
 		log.Fatalf("Failed to create task: %v", err)
 	}
@@ -116,7 +122,11 @@ func main() {
 		Tags: []string{"meeting", "example", "updated"},
 	}
 
-	updatedObject, err := client.UpdateObject(ctx, spaceID, createdNote.ID, updateObj)
+	updatedObject, err := client.UpdateObject(ctx, &anytype.UpdateObjectParams{
+		SpaceID:  spaceID,
+		ObjectID: createdNote.ID,
+		Object:   updateObj,
+	})
 	if err != nil {
 		log.Fatalf("Failed to update object: %v", err)
 	}
@@ -126,7 +136,10 @@ func main() {
 
 	// Delete the task 
 	fmt.Println("\n=== Deleting the Task ===")
-	err = client.DeleteObject(ctx, spaceID, createdTask.ID)
+	err = client.DeleteObject(ctx, &anytype.DeleteObjectParams{
+		SpaceID:  spaceID,
+		ObjectID: createdTask.ID,
+	})
 	if err != nil {
 		log.Fatalf("Failed to delete object: %v", err)
 	}

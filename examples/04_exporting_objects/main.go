@@ -65,7 +65,13 @@ func main() {
 		objectToExport := results.Data[0]
 		fmt.Printf("Exporting object: %s (ID: %s)\n", objectToExport.Name, objectToExport.ID)
 
-		filePath, err := client.ExportObject(ctx, spaceID, objectToExport.ID, exportDir, "md")
+		params := &anytype.ExportObjectParams{
+			SpaceID:    spaceID,
+			ObjectID:   objectToExport.ID,
+			ExportPath: exportDir,
+			Format:     "md",
+		}
+		filePath, err := client.ExportObject(ctx, params)
 		if err != nil {
 			log.Fatalf("Failed to export object: %v", err)
 		}
@@ -80,7 +86,13 @@ func main() {
 		fmt.Println("\n=== Exporting Multiple Objects ===")
 		fmt.Printf("Exporting %d objects to %s in markdown format\n", len(results.Data), exportDir)
 
-		exportedFiles, err := client.ExportObjects(ctx, spaceID, results.Data, exportDir, "md")
+		params := &anytype.ExportObjectsParams{
+			SpaceID:    spaceID,
+			Objects:    results.Data,
+			ExportPath: exportDir,
+			Format:     "md",
+		}
+		exportedFiles, err := client.ExportObjects(ctx, params)
 		if err != nil {
 			log.Fatalf("Failed to export objects: %v", err)
 		}
@@ -105,7 +117,13 @@ func main() {
 			log.Fatalf("Failed to create HTML export directory: %v", err)
 		}
 
-		filePath, err := client.ExportObject(ctx, spaceID, results.Data[0].ID, htmlExportDir, "html")
+		params := &anytype.ExportObjectParams{
+			SpaceID:    spaceID,
+			ObjectID:   results.Data[0].ID,
+			ExportPath: htmlExportDir,
+			Format:     "html",
+		}
+		filePath, err := client.ExportObject(ctx, params)
 		if err != nil {
 			fmt.Printf("Note: HTML export failed: %v (this format may not be supported)\n", err)
 		} else {

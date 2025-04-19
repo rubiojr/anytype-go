@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/epheo/anytype-go/internal/log"
 	"github.com/epheo/anytype-go/pkg/anytype"
 )
 
@@ -17,6 +18,6 @@ type Printer interface {
 	PrintInfo(format string, args ...interface{})
 	PrintDebug(format string, args ...interface{})
 	SetWriter(w io.Writer)
-	SetLogLevel(level LogLevel)
-	GetLogLevel() LogLevel
+	SetLogLevel(level log.Level)
+	GetLogLevel() log.Level
 }
