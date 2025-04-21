@@ -28,26 +28,31 @@ jobs:
           body: |
             # Anytype-Go ${{ github.ref_name }}
             
-            A Go SDK and command-line tool for interacting with the Anytype API to manage spaces, objects, and perform searches.
+            A Go SDK for interacting with the Anytype API to manage spaces, objects, and perform searches. This library provides a feature-rich, fluent interface to integrate Anytype functionality into your Go applications.
             
             ## Features
-            - Authentication management with automatic token refresh
-            - List available spaces
-            - Search for objects within spaces
-            - Filter searches by object type
-            - Colored terminal output
-            - Debug mode for API requests
-            - Configurable operation timeout
-            - Export objects to files in different formats
+            - Authentication management
+            - Space and member management
+            - Object creation, reading, updating, and deletion
+            - Advanced search capabilities with filters
+            - Template and type management
+            - Property handling
+            - Object export to different formats
+            - Middleware support including retry and validation
             
             ## Installation
             
-            ### Pre-built Binaries
-            Download the appropriate binary for your platform from the assets below.
-            
-            ### Via Go Install
             ```bash
-            go install github.com/epheo/anytype-go@${{ github.ref_name }}
+            go get github.com/epheo/anytype-go@${{ github.ref_name }}
+            ```
+            
+            ## Usage
+            
+            ```go
+            import (
+                "github.com/epheo/anytype-go/pkg/anytype"
+                _ "github.com/epheo/anytype-go/pkg/anytype/client" // Register client implementation
+            )
             ```
             
             ## Documentation
@@ -80,49 +85,44 @@ jobs:
           timeout 300 bash -c 'until curl --silent --fail "https://proxy.golang.org/github.com/epheo/anytype-go/@v/$VERSION.info" > /dev/null; do echo "Waiting for package to be available..."; sleep 10; done'
           echo "Package is now available on Go proxy!"
 
-  build:
-    name: Build Binaries
+  verify:
+    name: Verify Package
     needs: release
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - os: linux
-            arch: amd64
-            artifact_name: anytype-go-linux-amd64
-          - os: linux
-            arch: arm64
-            artifact_name: anytype-go-linux-arm64
-          - os: windows
-            arch: amd64
-            artifact_name: anytype-go-windows-amd64.exe
-          - os: darwin
-            arch: amd64
-            artifact_name: anytype-go-darwin-amd64
-          - os: darwin
-            arch: arm64
-            artifact_name: anytype-go-darwin-arm64
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.23'
           cache: true
 
-      - name: Build binary
-        run: |
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -v -o ${{ matrix.artifact_name }} ./cmd/anytype-go
+      - name: Run Tests
+        run: go test -v ./pkg/anytype/...
 
-      - name: Upload binary to release
+      - name: Check API Coverage
+        run: |
+          cd pkg/anytype/tests_api_coverage
+          ./update_api_definition.sh
+          go test -v
+
+      - name: Generate SDK Documentation
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          go install golang.org/x/tools/cmd/godoc@latest
+          mkdir -p ./docs
+          go doc -all github.com/epheo/anytype-go/pkg/anytype > ./docs/api.md
+
+      - name: Upload Documentation to Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.artifact_name }}
-          asset_content_type: application/octet-stream
+          asset_path: ./docs/api.md
+          asset_name: api-documentation.md
+          asset_content_type: text/markdown
