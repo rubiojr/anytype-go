@@ -9,7 +9,7 @@ const (
 	// - MAJOR version changes with incompatible API changes
 	// - MINOR version adds functionality in a backwards compatible manner
 	// - PATCH version makes backwards compatible bug fixes
-	Version = "0.3.0"
+	Version = "0.3.1"
 )
 
 // VersionInfo holds detailed version information

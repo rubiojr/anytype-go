@@ -4,7 +4,7 @@ package client
 import (
 	"context"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 // AuthClientImpl implements the AuthClient interface

@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
-	_ "github.com/epheo/anytype-go/pkg/anytype/client" // Register client implementation
+	"github.com/epheo/anytype-go"
+	_ "github.com/epheo/anytype-go/client" // Register client implementation
 )
 
 func main() {
