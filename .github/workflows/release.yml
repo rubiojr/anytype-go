@@ -28,7 +28,7 @@ jobs:
           body: |
             # Anytype-Go ${{ github.ref_name }}
             
-            A Go SDK for interacting with the Anytype API to manage spaces, objects, and perform searches. This library provides a feature-rich, fluent interface to integrate Anytype functionality into your Go applications.
+            A Go SDK for interacting with the [Anytype](https://anytype.io) API to manage spaces, objects, and perform searches. This library provides a feature-rich, fluent interface to integrate Anytype functionality into your Go applications.
             
             ## Features
             - Authentication management
@@ -38,7 +38,7 @@ jobs:
             - Template and type management
             - Property handling
             - Object export to different formats
-            - Middleware support including retry and validation
+            - Middleware support including retry, validation, and disconnect handling
             
             ## Installation
             
@@ -50,13 +50,33 @@ jobs:
             
             ```go
             import (
-                "github.com/epheo/anytype-go/pkg/anytype"
-                _ "github.com/epheo/anytype-go/pkg/anytype/client" // Register client implementation
+                "github.com/epheo/anytype-go"
+                _ "github.com/epheo/anytype-go/client" // Register client implementation
             )
+            
+            // Create a new client
+            client, err := anytype.NewClient()
+            if err != nil {
+                // Handle error
+            }
+            
+            // Work with spaces
+            spaces, err := client.Space().List()
+            
+            // Work with objects
+            obj, err := client.Object().Get("object-id")
             ```
             
             ## Documentation
-            See the [README](https://github.com/epheo/anytype-go/blob/main/README.md) for complete documentation.
+            See the [README](https://github.com/epheo/anytype-go/blob/main/README.md) for comprehensive documentation including:
+            
+            - Quick start guide
+            - Advanced examples
+            - Design philosophy
+            - API reference
+            - Best practices
+            
+            API documentation is also available as a release asset attached to this release.
 
   publish:
     name: Publish Go Package
@@ -102,11 +122,11 @@ jobs:
           cache: true
 
       - name: Run Tests
-        run: go test -v ./pkg/anytype/...
+        run: go test -v ./...
 
       - name: Check API Coverage
         run: |
-          cd pkg/anytype/tests_api_coverage
+          cd tests_api_coverage
           ./update_api_definition.sh
           go test -v
 
@@ -115,7 +135,7 @@ jobs:
           go install github.com/swaggo/swag/cmd/swag@latest
           go install golang.org/x/tools/cmd/godoc@latest
           mkdir -p ./docs
-          go doc -all github.com/epheo/anytype-go/pkg/anytype > ./docs/api.md
+          go doc -all github.com/epheo/anytype-go > ./docs/api.md
 
       - name: Upload Documentation to Release
         uses: actions/upload-release-asset@v1

@@ -331,7 +331,7 @@ go test -v ./tests/...
 go test -v ./tests_api_coverage/...
 ```
 
-The test infrastructure uses mock implementations (in `pkg/anytype/tests/mocks`) to simulate the Anytype API, allowing thorough testing without requiring a running Anytype instance.
+The test infrastructure uses mock implementations (in `tests/mocks`) to simulate the Anytype API, allowing thorough testing without requiring a running Anytype instance.
 
 ## 👥 Contributing
 
