@@ -1,4 +1,4 @@
-# Anytype-Go
+# Anytype-Go SDK
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/epheo/anytype-go)](https://goreportcard.com/report/github.com/epheo/anytype-go)
 [![GoDoc](https://godoc.org/github.com/epheo/anytype-go?status.svg)](https://godoc.org/github.com/epheo/anytype-go)
@@ -6,7 +6,34 @@
 
 A Go SDK for interacting with the [Anytype](https://anytype.io) API to manage spaces, objects, and perform searches. This library provides a feature-rich, fluent interface to integrate Anytype functionality into your Go applications.
 
-## Overview
+## Table of Contents
+
+- [📋 Overview](#-overview)
+- [📥 Installation](#-installation)
+- [🚦 Quick Start](#-quick-start)
+  - [Authentication](#authentication)
+  - [Working with Spaces](#working-with-spaces)
+  - [Working with Objects](#working-with-objects)
+  - [Searching](#searching)
+- [🔧 Advanced Examples](#-advanced-examples)
+  - [Working with Object Types and Templates](#working-with-object-types-and-templates)
+  - [Managing Object Properties](#managing-object-properties)
+  - [Working with Lists and Views](#working-with-lists-and-views)
+- [💡 Design Philosophy](#-design-philosophy)
+  - [1. Fluent Interface Pattern](#1-fluent-interface-pattern)
+  - [2. Domain-Driven Design](#2-domain-driven-design)
+  - [3. Naming Convention](#3-naming-convention)
+  - [4. Middleware Architecture](#4-middleware-architecture)
+- [📚 API Reference](#-api-reference)
+- [✅ Best Practices](#-best-practices)
+- [🔧 Troubleshooting](#-troubleshooting)
+- [🧪 Testing](#-testing)
+  - [Unit Tests with Mocks](#unit-tests-with-mocks)
+  - [API Coverage Tests](#api-coverage-tests)
+- [👥 Contributing](#-contributing)
+- [📜 License](#-license)
+
+## 📋 Overview
 
 Anytype-Go provides a Go SDK for interacting with Anytype's local API. This SDK offers a clean, fluent interface for:
 
@@ -16,7 +43,7 @@ Anytype-Go provides a Go SDK for interacting with Anytype's local API. This SDK 
 - Exporting objects to different formats
 - Working with object types, templates, and properties
 
-## Installation
+## 📥 Installation
 
 ```bash
 go get github.com/epheo/anytype-go
@@ -31,7 +58,9 @@ import (
 )
 ```
 
-## Quick Start
+## 🚦 Quick Start
+
+> 📁 **More complete examples** can be found in the [examples](./examples) directory, including full implementations of authentication, working with spaces, objects, and more.
 
 ### Authentication
 
@@ -125,7 +154,7 @@ results, err := client.Space(spaceID).Search(ctx, anytype.SearchRequest{
 })
 ```
 
-## Advanced Examples
+## 🔧 Advanced Examples
 
 ### Working with Object Types and Templates
 
@@ -207,7 +236,7 @@ newView, err := client.Space(spaceID).List(listID).Views().Create(ctx, anytype.C
 })
 ```
 
-## Design Philosophy
+## 💡 Design Philosophy
 
 The Anytype-Go SDK is built around three core design principles:
 
@@ -236,7 +265,7 @@ The SDK is organized around Anytype's core concepts (spaces, objects, types) wit
 - `TypeClient` for object types
 - `ListClient` for lists and views
 
-### Naming Convention Explanation
+### 3. Naming Convention
 
 The naming of interfaces and types in this library follows a clear and consistent pattern to improve code readability and API fluency:
 
@@ -251,7 +280,7 @@ This naming convention creates a fluent, chainable API where:
 
 This design enables intuitive navigation through the API that mirrors natural language and domain concepts.
 
-### 3. Middleware Architecture
+### 4. Middleware Architecture
 
 ```text
 HTTP Request → ValidationMiddleware → RetryMiddleware → DisconnectMiddleware → HTTP Client → API
@@ -263,11 +292,11 @@ Each middleware handles a specific concern:
 - **Retry**: Handles transient errors with configurable policies
 - **Disconnect**: Manages network interruptions
 
-## API Reference
+## 📚 API Reference
 
 For detailed API documentation, see [GoDoc](https://godoc.org/github.com/epheo/anytype-go).
 
-## Best Practices
+## ✅ Best Practices
 
 1. **Reuse the client instance** across your application
 2. **Use context for cancellation** to control timeouts
@@ -276,13 +305,35 @@ For detailed API documentation, see [GoDoc](https://godoc.org/github.com/epheo/a
 5. **Check for errors** and handle them appropriately
 6. **Use the fluent interface** for cleaner, more readable code
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-- **Authentication Failures**: Verify your app key and session token
-- **Connection Issues**: Ensure Anytype is running locally
-- **Rate Limiting**: Implement backoff if making many requests
+- Authentication Failures**: Verify your app key and session token
+- Connection Issues**: Ensure Anytype is running locally
+- Rate Limiting**: Implement backoff if making many requests
 
-## Contributing
+## 🧪 Testing
+
+The SDK testing approach focuses on behavior verification using mock implementations:
+
+### Unit Tests with Mocks
+
+`pkg/anytype/tests`: Tests ensure that client interfaces behave according to specifications using mock implementations to simulate API responses.
+
+```bash
+go test -v ./pkg/anytype/tests/...
+```
+
+### API Coverage Tests
+
+`pkg/anytype/tests_api_coverage`: Tests verify that all API endpoints are properly defined and can be called with appropriate parameters.
+
+```bash
+go test -v ./pkg/anytype/tests_api_coverage/...
+```
+
+The test infrastructure uses mock implementations (in `pkg/anytype/tests/mocks`) to simulate the Anytype API, allowing thorough testing without requiring a running Anytype instance.
+
+## 👥 Contributing
 
 1. Fork the repository
 2. Create your feature branch
@@ -290,6 +341,6 @@ For detailed API documentation, see [GoDoc](https://godoc.org/github.com/epheo/a
 4. Push to the branch
 5. Create a new Pull Request
 
-## License
+## 📜 License
 
 Apache License 2.0 - see [LICENSE](LICENSE) file for details.
