@@ -3,7 +3,7 @@ package anytype
 import (
 	"context"
 
-	"github.com/epheo/anytype-go/pkg/anytype/options"
+	"github.com/epheo/anytype-go/options"
 )
 
 // ObjectClient provides operations on objects within a space

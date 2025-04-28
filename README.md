@@ -53,8 +53,8 @@ Import both the main package and client implementation:
 
 ```go
 import (
-    "github.com/epheo/anytype-go/pkg/anytype"
-    _ "github.com/epheo/anytype-go/pkg/anytype/client" // Register client implementation
+    "github.com/epheo/anytype-go"
+    _ "github.com/epheo/anytype-go/client" // Register client implementation
 )
 ```
 
@@ -317,18 +317,18 @@ The SDK testing approach focuses on behavior verification using mock implementat
 
 ### Unit Tests with Mocks
 
-`pkg/anytype/tests`: Tests ensure that client interfaces behave according to specifications using mock implementations to simulate API responses.
+`tests`: Tests ensure that client interfaces behave according to specifications using mock implementations to simulate API responses.
 
 ```bash
-go test -v ./pkg/anytype/tests/...
+go test -v ./tests/...
 ```
 
 ### API Coverage Tests
 
-`pkg/anytype/tests_api_coverage`: Tests verify that all API endpoints are properly defined and can be called with appropriate parameters.
+`tests_api_coverage`: Tests verify that all API endpoints are properly defined and can be called with appropriate parameters.
 
 ```bash
-go test -v ./pkg/anytype/tests_api_coverage/...
+go test -v ./tests_api_coverage/...
 ```
 
 The test infrastructure uses mock implementations (in `pkg/anytype/tests/mocks`) to simulate the Anytype API, allowing thorough testing without requiring a running Anytype instance.

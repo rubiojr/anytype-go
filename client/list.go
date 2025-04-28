@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 // ListClientImpl implements the ListClient interface

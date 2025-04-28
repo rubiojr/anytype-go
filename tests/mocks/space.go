@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 // MockSpacesService implements the anytype.SpaceClient interface for testing

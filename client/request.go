@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/epheo/anytype-go/pkg/anytype/middleware"
+	"github.com/epheo/anytype-go/middleware"
 )
 
 // newRequest creates a new HTTP request with the appropriate headers

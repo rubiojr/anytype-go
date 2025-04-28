@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
-	"github.com/epheo/anytype-go/pkg/anytype/options"
+	"github.com/epheo/anytype-go"
+	"github.com/epheo/anytype-go/options"
 )
 
 // ObjectClientImpl implements the ObjectClient interface

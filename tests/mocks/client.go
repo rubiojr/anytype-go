@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 // MockClient implements the anytype.Client interface for testing

@@ -3,7 +3,7 @@ package client
 import (
 	"net/http"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 // ClientImpl is the actual implementation of the Client interface

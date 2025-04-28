@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 var ErrTypeNotFound = errors.New("type not found")

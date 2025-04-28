@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/epheo/anytype-go/pkg/anytype"
+	"github.com/epheo/anytype-go"
 )
 
 // BlockClientImpl implements the BlockClient interface
