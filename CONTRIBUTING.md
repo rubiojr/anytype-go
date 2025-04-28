@@ -2,27 +2,6 @@
 
 Thank you for your interest in contributing to the anytype-go project! This document provides guidelines and instructions for contributing to this project.
 
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Creating a New Release](#creating-a-new-release)
-- [Submitting Pull Requests](#submitting-pull-requests)
-- [Coding Standards](#coding-standards)
-
-### Commit Message Format
-
-We follow conventional commits for our commit messages:
-
-- `feat:` - A new feature
-- `fix:` - A bug fix
-- `docs:` - Documentation only changes
-- `style:` - Changes that do not affect the meaning of the code
-- `refactor:` - A code change that neither fixes a bug nor adds a feature
-- `perf:` - A code change that improves performance
-- `test:` - Adding missing tests or correcting existing tests
-- `chore:` - Changes to the build process or auxiliary tools
-
 ## Creating a New Release
 
 This section documents the process for creating and publishing a new tagged release of the anytype-go SDK.
@@ -58,21 +37,14 @@ This section documents the process for creating and publishing a new tagged rele
    Version = "X.Y.Z-alpha.N"  // Replace with your new version
    ```
 
-4. **Update the CHANGELOG.md**
-
-   Create or update the `CHANGELOG.md` file with a new section for the release:
-   - Use the format `## [X.Y.Z-alpha.N] - YYYY-MM-DD`
-   - Categorize changes under `### Added`, `### Changed`, `### Fixed`, etc.
-   - Include all notable changes since the last release
-
-5. **Commit the version changes**
+4. **Commit the version changes**
 
    ```bash
    git add pkg/anytype/version.go CHANGELOG.md
    git commit -m "chore: prepare release vX.Y.Z-alpha.N"
    ```
 
-6. **Create and push the release tag**
+5. **Create and push the release tag**
 
    ```bash
    # Create an annotated tag
