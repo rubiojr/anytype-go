@@ -150,23 +150,44 @@ func (oc *ObjectContextImpl) UpdateIcon(ctx context.Context, icon *anytype.Icon)
 
 // Export exports the object in the specified format
 func (oc *ObjectContextImpl) Export(ctx context.Context, format string) (*anytype.ExportResult, error) {
-	endpoint := fmt.Sprintf("/spaces/%s/objects/%s/%s", oc.spaceID, oc.objectID, format)
+	// The API gets object content with a format parameter as a query parameter
+	endpoint := fmt.Sprintf("/spaces/%s/objects/%s", oc.spaceID, oc.objectID)
 
-	req, err := oc.client.newRequest(ctx, http.MethodGet, endpoint, nil)
-	if err != nil {
-		return nil, err
+	// For markdown, ensure we're using the correct format parameter
+	// and try to include it in the request headers as well
+	var req *http.Request
+	var err error
+
+	if format == "markdown" {
+		// Use "md" as the query parameter
+		endpoint = fmt.Sprintf("%s?format=md", endpoint)
+		req, err = oc.client.newRequest(ctx, http.MethodGet, endpoint, nil)
+		if err != nil {
+			return nil, err
+		}
+		// Also try setting an Accept header just in case
+		req.Header.Set("Accept", "text/markdown")
+	} else if format != "" {
+		endpoint = fmt.Sprintf("%s?format=%s", endpoint, format)
+		req, err = oc.client.newRequest(ctx, http.MethodGet, endpoint, nil)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		req, err = oc.client.newRequest(ctx, http.MethodGet, endpoint, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	var response struct {
-		Markdown string `json:"markdown,omitempty"`
-	}
-
+	var response anytype.ObjectResponse
 	err = oc.client.doRequest(req, &response)
 	if err != nil {
 		return nil, err
 	}
 
+	// Return the markdown content
 	return &anytype.ExportResult{
-		Markdown: response.Markdown,
+		Markdown: response.Object.Markdown,
 	}, nil
 }

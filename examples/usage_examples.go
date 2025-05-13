@@ -90,15 +90,13 @@ func authenticate(ctx context.Context) anytype.Client {
 		return nil
 	}
 
-	fmt.Printf("Authentication successful! AppKey: %s..., SessionToken: %s...\n",
-		tokenResponse.AppKey[:10],
-		tokenResponse.SessionToken[:10])
+	fmt.Printf("Authentication successful! AppKey: %s\n",
+		safeSubstring(tokenResponse.AppKey, 10))
 
 	// Create a new authenticated client with the tokens
 	client = anytype.NewClient(
 		anytype.WithBaseURL("http://localhost:31009"),
 		anytype.WithAppKey(tokenResponse.AppKey),
-		anytype.WithSessionToken(tokenResponse.SessionToken),
 	)
 
 	return client
@@ -167,7 +165,7 @@ func workWithObjectTypes(ctx context.Context, client anytype.Client, spaceID str
 	var pageType *anytype.Type
 	for _, objType := range types {
 		fmt.Printf("Found type: %s (Key: %s)\n", objType.Name, objType.Key)
-		if objType.Key == "ot-page" {
+		if objType.Key == "page" {
 			pageType = &objType
 			break
 		}
@@ -238,7 +236,7 @@ func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templa
 	fmt.Println("Creating a new page object...")
 
 	createReq := anytype.CreateObjectRequest{
-		TypeKey:     "ot-page", // Using the known type key for pages
+		TypeKey:     "page", // Using the known type key for pages
 		Name:        "Go SDK Example Page",
 		Description: "Created via the Go SDK examples",
 		Body:        "# Go SDK Example\n\nThis page was created using the Anytype Go SDK.\n\n## Features\n\n- Easy authentication\n- Space management\n- Object creation and manipulation\n- Search capabilities",
@@ -280,6 +278,18 @@ func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templa
 	exportResp, err := client.Space(spaceID).Object(objectID).Export(ctx, "markdown")
 	if err != nil {
 		log.Printf("Failed to export object: %v", err)
+
+		// Try an alternative approach - check if the object details already include markdown content
+		fmt.Println("Trying alternative approach to get markdown content...")
+		detailedObject, err := client.Space(spaceID).Object(objectID).Get(ctx)
+		if err != nil {
+			log.Printf("Failed to get detailed object: %v", err)
+		} else if detailedObject.Object.Markdown != "" {
+			fmt.Printf("Markdown preview from object details: %s\n",
+				previewText(detailedObject.Object.Markdown, 100))
+		} else {
+			fmt.Println("No markdown content available in object details")
+		}
 	} else {
 		fmt.Printf("Markdown export preview: %s\n", previewText(exportResp.Markdown, 100))
 	}
@@ -287,8 +297,12 @@ func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templa
 	// Create a temporary object to demonstrate deletion
 	fmt.Println("Creating a temporary object to demonstrate deletion...")
 	tempObject, err := client.Space(spaceID).Objects().Create(ctx, anytype.CreateObjectRequest{
-		TypeKey: "ot-page",
+		TypeKey: "page",
 		Name:    "Temporary Object for Deletion Demo",
+		Icon: &anytype.Icon{
+			Format: anytype.IconFormatEmoji,
+			Emoji:  "📝",
+		},
 	})
 	if err != nil {
 		log.Printf("Failed to create temporary object: %v", err)
@@ -320,7 +334,7 @@ func workWithLists(ctx context.Context, client anytype.Client, spaceID, objectID
 
 	fmt.Println("Finding a list in the current space...")
 	searchResp, err := client.Space(spaceID).Search(ctx, anytype.SearchRequest{
-		Types: []string{"ot-collection"}, // Search for objects of type: Collection
+		Types: []string{"collection"}, // Search for objects of type: Collection
 	})
 	if err != nil || len(searchResp.Data) == 0 {
 		log.Printf("No collection objects found for demonstration")
@@ -414,7 +428,7 @@ func searchObjects(ctx context.Context, client anytype.Client, spaceID string) {
 			Property:  anytype.SortPropertyLastModifiedDate,
 			Direction: anytype.SortDirectionDesc,
 		},
-		Types: []string{"ot-page"}, // Only search for pages
+		Types: []string{"page"}, // Only search for pages
 	})
 	if err != nil {
 		log.Printf("Failed to perform advanced search: %v", err)
@@ -489,4 +503,15 @@ func previewText(text string, maxLen int) string {
 		return text
 	}
 	return text[:maxLen] + "..."
+}
+
+// safeSubstring returns a substring safely handling empty strings
+func safeSubstring(s string, maxLen int) string {
+	if len(s) == 0 {
+		return "<empty>"
+	}
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
 }

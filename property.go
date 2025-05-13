@@ -21,30 +21,32 @@ type PropertyClient interface {
 
 // Property represents an object property
 type Property struct {
-	ID          string
-	Format      string
-	Text        string
-	Number      float64
-	Checkbox    bool
-	Date        string
-	URL         string
-	Email       string
-	Phone       string
-	File        []string
-	Select      *Tag     `json:"select"`
-	MultiSelect []Tag    `json:"multi_select"`
-	ObjectLinks []string `json:"object"`
-	Relations   []Relation
-	Key         string
-	Name        string
-	Required    bool
+	ID          string   `json:"id,omitempty"`
+	Format      string   `json:"format,omitempty"`
+	Key         string   `json:"key,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	Object      string   `json:"object,omitempty"` // Data model of the object, e.g., "property"
+	Text        string   `json:"text,omitempty"`
+	Number      float64  `json:"number,omitempty"`
+	Checkbox    bool     `json:"checkbox,omitempty"`
+	Date        string   `json:"date,omitempty"`
+	URL         string   `json:"url,omitempty"`
+	Email       string   `json:"email,omitempty"`
+	Phone       string   `json:"phone,omitempty"`
+	Files       []string `json:"files,omitempty"` // Changed from File to Files to match API
+	Select      *Tag     `json:"select,omitempty"`
+	MultiSelect []Tag    `json:"multi_select,omitempty"`
+	Objects     []string `json:"objects,omitempty"` // Changed from ObjectLinks to Objects
+	Required    bool     `json:"required,omitempty"`
 }
 
 // Tag represents a select or multi-select value option
 type Tag struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Color string `json:"color"`
+	ID     string `json:"id,omitempty"`
+	Key    string `json:"key,omitempty"` // Added key field from API definition
+	Name   string `json:"name,omitempty"`
+	Color  string `json:"color,omitempty"`
+	Object string `json:"object,omitempty"` // Data model identifier
 }
 
 // Relation represents a relation within a property

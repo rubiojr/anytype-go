@@ -15,7 +15,7 @@ func TestListsAndViews(t *testing.T) {
 
 	// Create a test object to add to a list
 	testObject, err := tc.Client.Space(spaceID).Objects().Create(tc.Ctx, anytype.CreateObjectRequest{
-		TypeKey: "ot-page",
+		TypeKey: "page",
 		Name:    "List Test Object",
 	})
 	if err != nil {
@@ -27,7 +27,7 @@ func TestListsAndViews(t *testing.T) {
 
 	// Try to find a collection/list in the space
 	searchResp, err := tc.Client.Space(spaceID).Search(tc.Ctx, anytype.SearchRequest{
-		Types: []string{"ot-collection"},
+		Types: []string{"collection"},
 	})
 	if err != nil {
 		t.Fatalf("Failed to search for collections: %v", err)

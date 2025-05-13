@@ -38,7 +38,8 @@ type Object struct {
 	Icon       *Icon
 	Snippet    string
 	Properties []Property
-	Type       *Type `json:"type,omitempty"`
+	Type       *Type  `json:"type,omitempty"`
+	Markdown   string `json:"markdown,omitempty"` // Content in markdown format when requested with format=md
 }
 
 // ObjectResponse wraps an Object in a response according to the API specification

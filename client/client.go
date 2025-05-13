@@ -8,10 +8,9 @@ import (
 
 // ClientImpl is the actual implementation of the Client interface
 type ClientImpl struct {
-	httpClient   *http.Client
-	baseURL      string
-	appKey       string
-	sessionToken string
+	httpClient *http.Client
+	baseURL    string
+	appKey     string
 }
 
 func init() {
@@ -22,10 +21,9 @@ func init() {
 // NewClient creates a new Anytype API client with the given options
 func NewClient(options anytype.ClientOptions) anytype.Client {
 	return &ClientImpl{
-		httpClient:   http.DefaultClient,
-		baseURL:      options.BaseURL,
-		appKey:       options.AppKey,
-		sessionToken: options.SessionToken,
+		httpClient: http.DefaultClient,
+		baseURL:    options.BaseURL,
+		appKey:     options.AppKey,
 	}
 }
 

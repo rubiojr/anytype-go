@@ -27,14 +27,14 @@ func NewMockObjectsService() *MockObjectsService {
 					ID:      "mock-object-id-1",
 					Name:    "Mock Object 1",
 					SpaceID: "mock-space-id",
-					TypeKey: "ot-page",
+					TypeKey: "page",
 					Layout:  "basic",
 				},
 				{
 					ID:      "mock-object-id-2",
 					Name:    "Mock Object 2",
 					SpaceID: "mock-space-id",
-					TypeKey: "ot-page",
+					TypeKey: "page",
 					Layout:  "basic",
 				},
 			}, nil
@@ -47,7 +47,7 @@ func NewMockObjectsService() *MockObjectsService {
 			}
 
 			// Use the provided type or a default
-			typeKey := "ot-page"
+			typeKey := "page"
 			if req.TypeKey != "" {
 				typeKey = req.TypeKey
 			}
@@ -77,7 +77,7 @@ func NewMockObjectsService() *MockObjectsService {
 					ID:      objectID,
 					Name:    "Mock Object",
 					SpaceID: "mock-space-id",
-					TypeKey: "ot-page",
+					TypeKey: "page",
 					Layout:  "basic",
 				},
 			}, nil
@@ -131,7 +131,7 @@ func (s *MockObjectsService) Get(ctx context.Context) (*anytype.ObjectResponse, 
 				ID:      s.CurrentObjectID,
 				Name:    "Mock Object",
 				SpaceID: "mock-space-id",
-				TypeKey: "ot-page",
+				TypeKey: "page",
 				Layout:  "basic",
 			},
 		}, nil
@@ -140,9 +140,16 @@ func (s *MockObjectsService) Get(ctx context.Context) (*anytype.ObjectResponse, 
 	return s.GetFunc(ctx)
 }
 
-// Export calls the mock implementation
+// Export implements the ExportFunc for the mock
 func (s *MockObjectsService) Export(ctx context.Context, format string) (*anytype.ExportResult, error) {
-	return s.ExportFunc(ctx, format)
+	if s.ExportFunc != nil {
+		return s.ExportFunc(ctx, format)
+	}
+
+	// By default, return a mock markdown result
+	return &anytype.ExportResult{
+		Markdown: "# Mock Object\n\nThis is the content of a mock object exported as markdown.",
+	}, nil
 }
 
 // Delete calls the mock implementation

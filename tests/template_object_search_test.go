@@ -19,10 +19,10 @@ func TestTemplates(t *testing.T) {
 		t.Fatalf("Failed to list object types: %v", err)
 	}
 
-	// Try to find a suitable type (prefer 'ot-page')
+	// Try to find a suitable type (prefer 'page')
 	var typeKey string
 	for _, objType := range types {
-		if objType.Key == "ot-page" {
+		if objType.Key == "page" {
 			typeKey = objType.Key
 			break
 		}
@@ -83,7 +83,7 @@ func TestObjects(t *testing.T) {
 	// Create a test object
 	testObjectName := "Go SDK Test Object"
 	createReq := anytype.CreateObjectRequest{
-		TypeKey:     "ot-page",
+		TypeKey:     "page",
 		Name:        testObjectName,
 		Description: "Created for SDK testing",
 		Body:        "# Test Object\n\nThis is a test object created by the Go SDK tests.",
@@ -149,7 +149,7 @@ func TestSearching(t *testing.T) {
 	// Create a test object with a unique searchable name
 	uniqueSearchTerm := "UniqueTestSearchTerm2025"
 	createReq := anytype.CreateObjectRequest{
-		TypeKey: "ot-page",
+		TypeKey: "page",
 		Name:    uniqueSearchTerm,
 		Body:    "This is a test object with a unique search term for testing search functionality",
 	}
@@ -190,7 +190,7 @@ func TestSearching(t *testing.T) {
 			Property:  anytype.SortPropertyLastModifiedDate,
 			Direction: anytype.SortDirectionDesc,
 		},
-		Types: []string{"ot-page"},
+		Types: []string{"page"},
 	})
 	if err != nil {
 		t.Fatalf("Failed to perform advanced search: %v", err)

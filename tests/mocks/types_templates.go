@@ -20,12 +20,12 @@ func NewMockTypeService() *MockTypeService {
 		ListFunc: func(ctx context.Context) ([]anytype.Type, error) {
 			return []anytype.Type{
 				{
-					Key:         "ot-page",
+					Key:         "page",
 					Name:        "Page",
 					Description: "A basic page type",
 				},
 				{
-					Key:         "ot-collection",
+					Key:         "collection",
 					Name:        "Collection",
 					Description: "A collection type",
 				},
@@ -40,7 +40,7 @@ func NewMockTypeService() *MockTypeService {
 		},
 		GetKeyByNameFunc: func(ctx context.Context, name string) (string, error) {
 			if name == "Page" {
-				return "ot-page", nil
+				return "page", nil
 			}
 			return "unknown", nil
 		},

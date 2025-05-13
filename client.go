@@ -2,9 +2,8 @@ package anytype
 
 // ClientOptions contains configuration options for the Anytype client
 type ClientOptions struct {
-	BaseURL      string
-	AppKey       string
-	SessionToken string
+	BaseURL string
+	AppKey  string
 }
 
 // Client is the main interface for interacting with the Anytype API
@@ -47,13 +46,6 @@ func WithBaseURL(url string) ClientOption {
 func WithAppKey(appKey string) ClientOption {
 	return func(o *ClientOptions) {
 		o.AppKey = appKey
-	}
-}
-
-// WithSessionToken sets the session token for authentication
-func WithSessionToken(token string) ClientOption {
-	return func(o *ClientOptions) {
-		o.SessionToken = token
 	}
 }
 

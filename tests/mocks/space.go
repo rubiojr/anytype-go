@@ -88,7 +88,7 @@ func NewMockSpaceService() *MockSpaceService {
 							ID:      "new-mock-object-id",
 							Name:    "Test Object with UniqueTestSearchTerm2025",
 							SpaceID: "mock-space-id",
-							TypeKey: "ot-page",
+							TypeKey: "page",
 							Layout:  "basic",
 						},
 					},
@@ -102,7 +102,7 @@ func NewMockSpaceService() *MockSpaceService {
 						ID:      "mock-object-id",
 						Name:    "Mock Object",
 						SpaceID: "mock-space-id",
-						TypeKey: "ot-page",
+						TypeKey: "page",
 						Layout:  "basic",
 					},
 				},
@@ -180,7 +180,7 @@ func NewMockSearchClient() *MockSearchClient {
 							ID:      "new-mock-object-id", // This ID matches what the test expects
 							Name:    "Test Object with UniqueTestSearchTerm2025",
 							SpaceID: "mock-space-id",
-							TypeKey: "ot-page",
+							TypeKey: "page",
 						},
 					},
 				}, nil
@@ -193,7 +193,7 @@ func NewMockSearchClient() *MockSearchClient {
 						ID:      "mock-search-result-id",
 						Name:    "Mock Search Result",
 						SpaceID: "mock-space-id",
-						TypeKey: "ot-page",
+						TypeKey: "page",
 					},
 				},
 			}, nil

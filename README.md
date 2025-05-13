@@ -9,6 +9,7 @@ A Go SDK for interacting with the [Anytype](https://anytype.io) API to manage sp
 ## Table of Contents
 
 - [📋 Overview](#-overview)
+- [🔄 API Version Support](#-api-version-support)
 - [📥 Installation](#-installation)
 - [🚦 Quick Start](#-quick-start)
   - [Authentication](#authentication)
@@ -43,6 +44,16 @@ Anytype-Go provides a Go SDK for interacting with Anytype's local API. This SDK 
 - Exporting objects to different formats
 - Working with object types, templates, and properties
 
+## 🔄 API Version Support
+
+This SDK is compatible with Anytype API version `2025-04-22`. The SDK follows Anytype's API versioning scheme, which uses date-based versioning for stability and compatibility:
+
+- All API requests include the `Anytype-Version` header set to `2025-04-22`
+- Type keys such as `page` and `collection` follow the latest API specification
+- Authentication uses the app key Bearer token method
+
+If you encounter any compatibility issues when Anytype updates its API, please check for an updated version of this SDK that supports the new API version.
+
 ## 📥 Installation
 
 ```bash
@@ -64,7 +75,7 @@ import (
 
 ### Authentication
 
-To use the Anytype API, you need to obtain an AppKey and SessionToken. Here's how to get them:
+To use the Anytype API, you need to obtain an AppKey. Here's how to get it:
 
 ```go
 // Step 1: Initiate authentication and get challenge ID
@@ -85,15 +96,13 @@ if err != nil {
     log.Fatalf("Authentication failed: %v", err)
 }
 
-// Now you have your authentication tokens
+// Now you have your authentication token
 appKey := tokenResponse.AppKey
-sessionToken := tokenResponse.SessionToken
 
 // Create authenticated client
 client := anytype.NewClient(
     anytype.WithBaseURL("http://localhost:31009"), // Default Anytype local API URL
     anytype.WithAppKey(appKey),
-    anytype.WithSessionToken(sessionToken),
 )
 ```
 
@@ -129,13 +138,13 @@ exportResult, err := client.Space(spaceID).Object(objectID).Export(ctx, "markdow
 
 // Create a new object
 newObject, err := client.Space(spaceID).Objects().Create(ctx, anytype.CreateObjectRequest{
-    TypeKey:     "ot-page",
+    TypeKey:     "page",
     Name:        "My New Page",
     Description: "Created via the Go SDK",
     Body:        "# This is a new page\n\nWith some content in markdown format.",
     Icon: &anytype.Icon{
-        Type:  "emoji",
-        Value: "📄",
+        Format: anytype.IconFormatEmoji,
+        Emoji: "📄",
     },
 })
 ```
@@ -146,11 +155,11 @@ newObject, err := client.Space(spaceID).Objects().Create(ctx, anytype.CreateObje
 // Search within a specific space
 results, err := client.Space(spaceID).Search(ctx, anytype.SearchRequest{
     Query: "important notes",
-    Sort: anytype.SortOptions{
+    Sort: &anytype.SortOptions{
         Property:  anytype.SortPropertyLastModifiedDate,
         Direction: anytype.SortDirectionDesc,
     },
-    Types: []string{"ot-note", "ot-page"}, // Filter by specific types
+    Types: []string{"note", "page"}, // Filter by specific types
 })
 ```
 
@@ -163,22 +172,13 @@ results, err := client.Space(spaceID).Search(ctx, anytype.SearchRequest{
 objectTypes, err := client.Space(spaceID).Types().List(ctx)
 
 // Get details of a specific object type
-typeDetails, err := client.Space(spaceID).Type(typeID).Get(ctx)
+typeDetails, err := client.Space(spaceID).Type(typeKey).Get(ctx)
 
-// Create a new template based on an object type
-newTemplate, err := client.Space(spaceID).Templates().Create(ctx, anytype.CreateTemplateRequest{
-    Name:        "Project Template",
-    Description: "Template for project documentation",
-    TypeID:      typeID,
-    Icon: &anytype.Icon{
-        Type:  "emoji",
-        Value: "📋",
-    },
-    DefaultProperties: []string{"name", "description", "status", "deadline"},
-})
+// List templates for a specific object type
+templates, err := client.Space(spaceID).Type(typeKey).Templates().List(ctx)
 
-// Get a specific template
-template, err := client.Space(spaceID).Template(templateID).Get(ctx)
+// Get details of a specific template
+template, err := client.Space(spaceID).Type(typeKey).Template(templateID).Get(ctx)
 ```
 
 ### Managing Object Properties
@@ -307,9 +307,10 @@ For detailed API documentation, see [GoDoc](https://godoc.org/github.com/epheo/a
 
 ## 🔧 Troubleshooting
 
-- Authentication Failures**: Verify your app key and session token
-- Connection Issues**: Ensure Anytype is running locally
-- Rate Limiting**: Implement backoff if making many requests
+- **Authentication Failures**: Verify your app key
+- **Connection Issues**: Ensure Anytype is running locally
+- **Rate Limiting**: Implement backoff if making many requests
+- **API Version Mismatch**: If you get errors about unknown fields or unexpected responses, check that your Anytype app version is compatible with the API version this SDK supports (2025-04-22)
 
 ## 🧪 Testing
 

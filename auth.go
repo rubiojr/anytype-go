@@ -20,6 +20,5 @@ type DisplayCodeResponse struct {
 
 // TokenResponse represents the response from the token endpoint
 type TokenResponse struct {
-	AppKey       string `json:"app_key"`
-	SessionToken string `json:"session_token"`
+	AppKey string `json:"app_key"`
 }

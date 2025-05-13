@@ -101,14 +101,14 @@ func TestObjectTypes(t *testing.T) {
 	// Try to find the Page type
 	var pageTypeKey string
 	for _, objType := range types {
-		if objType.Key == "ot-page" {
+		if objType.Key == "page" {
 			pageTypeKey = objType.Key
 			break
 		}
 	}
 
 	if pageTypeKey == "" {
-		t.Log("Could not find 'ot-page' type, this might be expected in certain configurations")
+		t.Log("Could not find 'page' type, this might be expected in certain configurations")
 	} else {
 		t.Logf("Found page type with key: %s", pageTypeKey)
 	}

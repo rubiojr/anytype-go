@@ -22,8 +22,7 @@ func NewMockAuthService() *MockAuthService {
 		},
 		GetTokenFunc: func(ctx context.Context, challengeID, code string) (*anytype.TokenResponse, error) {
 			return &anytype.TokenResponse{
-				AppKey:       "mock-app-key",
-				SessionToken: "mock-session-token",
+				AppKey: "mock-app-key",
 			}, nil
 		},
 	}
