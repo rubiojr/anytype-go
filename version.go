@@ -9,7 +9,7 @@ const (
 	// - MAJOR version changes with incompatible API changes
 	// - MINOR version adds functionality in a backwards compatible manner
 	// - PATCH version makes backwards compatible bug fixes
-	Version = "0.3.2"
+	Version = "0.3.3"
 )
 
 // VersionInfo holds detailed version information
@@ -23,6 +23,6 @@ type VersionInfo struct {
 // GetVersionInfo returns version information for the SDK
 func GetVersionInfo() VersionInfo {
 	return VersionInfo{
-		Version:    Version,
+		Version: Version,
 	}
 }
