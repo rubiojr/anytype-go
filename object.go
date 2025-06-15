@@ -49,13 +49,12 @@ type ObjectResponse struct {
 
 // CreateObjectRequest contains parameters for creating a new object
 type CreateObjectRequest struct {
-	TypeKey     string `json:"type_key"`
-	Name        string
-	Description string
-	Body        string
-	Icon        *Icon
-	TemplateID  string `json:"template_id,omitempty"`
-	Source      string // Only applicable for bookmarks
+	TypeKey    string `json:"type_key"`
+	Name       string
+	Body       string
+	Icon       *Icon
+	TemplateID string           `json:"template_id,omitempty"`
+	Properties []map[string]any `json:"properties"`
 }
 
 // UpdateObjectRequest contains parameters for updating an object

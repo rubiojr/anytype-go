@@ -51,11 +51,9 @@ type Type struct {
 
 // PropertyDefinition defines a property that can be used with a type
 type PropertyDefinition struct {
-	Key      string
-	Name     string
-	Format   string
-	Required bool
-	Options  []PropertyOption
+	Key    string `json:"key,omitempty"`
+	Name   string `json:"name"`
+	Format string `json:"format"`
 }
 
 // PropertyOption represents an option for select/multi-select properties

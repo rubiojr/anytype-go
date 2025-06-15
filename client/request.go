@@ -40,7 +40,7 @@ func (c *ClientImpl) newRequest(ctx context.Context, method, urlPath string, bod
 	// Set standard headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Anytype-Version", "2025-04-22")
+	req.Header.Set("Anytype-Version", "2025-05-20")
 
 	// Set authentication with app key as the Bearer token
 	if c.appKey != "" {

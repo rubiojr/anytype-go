@@ -241,16 +241,14 @@ func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) e
 		PluralName: "Books",
 		Properties: []anytype.PropertyDefinition{
 			{
-				Key:      "author",
-				Name:     "Author",
-				Format:   "text",
-				Required: true,
+				Key:    "author",
+				Name:   "Author",
+				Format: "text",
 			},
 			{
-				Key:      "isbn",
-				Name:     "ISBN",
-				Format:   "text",
-				Required: false,
+				Key:    "isbn",
+				Name:   "ISBN",
+				Format: "text",
 			},
 		},
 	}
@@ -284,10 +282,9 @@ func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templa
 	fmt.Println("Creating a new page object...")
 
 	createReq := anytype.CreateObjectRequest{
-		TypeKey:     "page", // Using the known type key for pages
-		Name:        "Go SDK Example Page",
-		Description: "Created via the Go SDK examples",
-		Body:        "# Go SDK Example\n\nThis page was created using the Anytype Go SDK.\n\n## Features\n\n- Easy authentication\n- Space management\n- Object creation and manipulation\n- Search capabilities",
+		TypeKey: "page", // Using the known type key for pages
+		Name:    "Go SDK Example Page",
+		Body:    "# Go SDK Example\n\nThis page was created using the Anytype Go SDK.\n\n## Features\n\n- Easy authentication\n- Space management\n- Object creation and manipulation\n- Search capabilities",
 	}
 
 	// Use template if available

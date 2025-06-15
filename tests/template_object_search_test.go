@@ -83,10 +83,9 @@ func TestObjects(t *testing.T) {
 	// Create a test object
 	testObjectName := "Go SDK Test Object"
 	createReq := anytype.CreateObjectRequest{
-		TypeKey:     "page",
-		Name:        testObjectName,
-		Description: "Created for SDK testing",
-		Body:        "# Test Object\n\nThis is a test object created by the Go SDK tests.",
+		TypeKey: "page",
+		Name:    testObjectName,
+		Body:    "# Test Object\n\nThis is a test object created by the Go SDK tests.",
 	}
 
 	// Set an emoji icon
