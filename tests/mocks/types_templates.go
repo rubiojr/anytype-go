@@ -48,11 +48,10 @@ func NewMockTypeService() *MockTypeService {
 		CreateFunc: func(ctx context.Context, request anytype.CreateTypeRequest) (*anytype.TypeResponse, error) {
 			return &anytype.TypeResponse{
 				Type: anytype.Type{
-					Key:         "mock-type-" + request.Name,
-					Name:        request.Name,
-					Description: request.Description,
-					Icon:        request.Icon,
-					Layout:      request.Layout,
+					Key:    "mock-type-" + request.Name,
+					Name:   request.Name,
+					Icon:   request.Icon,
+					Layout: request.Layout,
 				},
 			}, nil
 		},

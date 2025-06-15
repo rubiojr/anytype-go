@@ -232,9 +232,8 @@ func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) e
 	// Create a new type
 	fmt.Println("Creating a new type...")
 	createTypeReq := anytype.CreateTypeRequest{
-		Name:        "Book",
-		Description: "A custom book type created via the Go SDK",
-		Layout:      "basic",
+		Name:   "Book",
+		Layout: "basic",
 		Icon: &anytype.Icon{
 			Format: anytype.IconFormatEmoji,
 			Emoji:  "📚",

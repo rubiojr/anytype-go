@@ -67,13 +67,12 @@ type PropertyOption struct {
 
 // CreateTypeRequest represents the request payload for creating a new type
 type CreateTypeRequest struct {
-	Name              string               `json:"name"`
-	Description       string               `json:"description,omitempty"`
-	Icon              *Icon                `json:"icon,omitempty"`
-	Layout            string               `json:"layout,omitempty"`
-	RecommendedLayout string               `json:"recommended_layout,omitempty"`
-	PluralName        string               `json:"plural_name,omitempty"`
-	Properties        []PropertyDefinition `json:"properties,omitempty"`
+	Key        string               `json:"key,omitempty"`
+	Name       string               `json:"name"`
+	Icon       *Icon                `json:"icon,omitempty"`
+	Layout     string               `json:"layout"`
+	PluralName string               `json:"plural_name,omitempty"`
+	Properties []PropertyDefinition `json:"properties,omitempty"`
 }
 
 // TypeResponse represents the response from a Get call on a type
