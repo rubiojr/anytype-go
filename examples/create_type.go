@@ -111,11 +111,6 @@ func createCustomType(ctx context.Context, client anytype.Client, spaceID string
 				Name:   "Description",
 				Format: "text",
 			},
-			{
-				Key:    "inStock",
-				Name:   "In Stock",
-				Format: "checkbox",
-			},
 		},
 	}
 
@@ -150,6 +145,14 @@ func createObjectOfType(ctx context.Context, client anytype.Client, spaceID, typ
 			{
 				"key":    "price",
 				"number": 22.3,
+			},
+			{
+				"key":  "category",
+				"text": "laptop",
+			},
+			{
+				"key":  "description",
+				"text": "This is a gaming laptop with high performance specifications.",
 			},
 		},
 	}
