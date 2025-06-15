@@ -15,6 +15,9 @@ type TypeClient interface {
 	// GetKeyByName looks up a type key by its name
 	GetKeyByName(ctx context.Context, name string) (string, error)
 
+	// Create creates a new type in the space
+	Create(ctx context.Context, request CreateTypeRequest) (*TypeResponse, error)
+
 	// Type returns a TypeContext for a specific type in this space
 	Type(typeID string) TypeContext
 }
@@ -60,6 +63,17 @@ type PropertyOption struct {
 	ID    string
 	Value string
 	Color string
+}
+
+// CreateTypeRequest represents the request payload for creating a new type
+type CreateTypeRequest struct {
+	Name              string               `json:"name"`
+	Description       string               `json:"description,omitempty"`
+	Icon              *Icon                `json:"icon,omitempty"`
+	Layout            string               `json:"layout,omitempty"`
+	RecommendedLayout string               `json:"recommended_layout,omitempty"`
+	PluralName        string               `json:"plural_name,omitempty"`
+	Properties        []PropertyDefinition `json:"properties,omitempty"`
 }
 
 // TypeResponse represents the response from a Get call on a type

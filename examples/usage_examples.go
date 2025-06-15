@@ -27,31 +27,38 @@ func main() {
 		return
 	}
 
-	// Step 3: Working with object types
+	// Step 3: Working with types (creating new types)
+	err := workWithTypes(ctx, client, spaceID)
+	if err != nil {
+		log.Printf("Failed to work with types: %v", err)
+		return
+	}
+
+	// Step 4: Working with object types
 	typeID := workWithObjectTypes(ctx, client, spaceID)
 	if typeID == "" {
 		return
 	}
 
-	// Step 4: Working with templates
+	// Step 5: Working with templates
 	templateID := workWithTemplates(ctx, client, spaceID, typeID)
 
-	// Step 5: Working with objects
+	// Step 6: Working with objects
 	objectID := workWithObjects(ctx, client, spaceID, templateID)
 	if objectID == "" {
 		return
 	}
 
-	// Step 6: Working with lists and views
+	// Step 7: Working with lists and views
 	listID := workWithLists(ctx, client, spaceID, objectID)
 	if listID == "" {
 		return
 	}
 
-	// Step 7: Searching for objects
+	// Step 8: Searching for objects
 	searchObjects(ctx, client, spaceID)
 
-	// Step 8: Working with members
+	// Step 9: Working with members
 	workWithMembers(ctx, client, spaceID)
 
 	fmt.Println("\nSuccessfully completed all example operations!")
@@ -219,6 +226,48 @@ func workWithTemplates(ctx context.Context, client anytype.Client, spaceID, type
 }
 
 // workWithObjects demonstrates operations with objects
+func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) error {
+	fmt.Println("\n=== Working with Types ===")
+
+	// Create a new type
+	fmt.Println("Creating a new type...")
+	createTypeReq := anytype.CreateTypeRequest{
+		Name:        "Book",
+		Description: "A custom book type created via the Go SDK",
+		Layout:      "basic",
+		Icon: &anytype.Icon{
+			Format: anytype.IconFormatEmoji,
+			Emoji:  "📚",
+		},
+		PluralName: "Books",
+		Properties: []anytype.PropertyDefinition{
+			{
+				Key:      "author",
+				Name:     "Author",
+				Format:   "text",
+				Required: true,
+			},
+			{
+				Key:      "isbn",
+				Name:     "ISBN",
+				Format:   "text",
+				Required: false,
+			},
+		},
+	}
+
+	newType, err := client.Space(spaceID).Types().Create(ctx, createTypeReq)
+	if err != nil {
+		return fmt.Errorf("failed to create type: %w", err)
+	}
+
+	fmt.Printf("Created type: %s (Key: %s)\n", newType.Type.Name, newType.Type.Key)
+	fmt.Printf("Type description: %s\n", newType.Type.Description)
+	fmt.Printf("Type has %d property definitions\n", len(newType.Type.PropertyDefinitions))
+
+	return nil
+}
+
 func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templateID string) string {
 	fmt.Println("\n=== Working with Objects ===")
 
