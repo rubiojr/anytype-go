@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/epheo/anytype-go"
@@ -22,9 +23,14 @@ func main() {
 	}
 
 	// Step 2: Working with spaces
-	spaceID := workWithSpaces(ctx, client)
+	spaceID := os.Getenv("ANYTYPE_SPACE_ID")
+	// if Space ID isn't set, use one of the spaces available
 	if spaceID == "" {
-		return
+		fmt.Println("Space ID not set, using first space available")
+		spaceID = workWithSpaces(ctx, client)
+		if spaceID == "" {
+			return
+		}
 	}
 
 	// Step 3: Working with types (creating new types)
@@ -315,8 +321,8 @@ func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) e
 		fmt.Printf("  Type: %s\n", objectDetails.Object.Type.Name)
 		if objectDetails.Object.Properties != nil {
 			fmt.Printf("  Properties:\n")
-			for key, value := range objectDetails.Object.Properties {
-				fmt.Printf("    %s: %v\n", key, value)
+			for _, value := range objectDetails.Object.Properties {
+				fmt.Printf("    %s: %+v\n", value.Key, value)
 			}
 		}
 	}
