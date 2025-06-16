@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/epheo/anytype-go"
@@ -22,36 +23,48 @@ func main() {
 	}
 
 	// Step 2: Working with spaces
-	spaceID := workWithSpaces(ctx, client)
+	spaceID := os.Getenv("ANYTYPE_SPACE_ID")
+	// if Space ID isn't set, use one of the spaces available
 	if spaceID == "" {
+		fmt.Println("Space ID not set, using first space available")
+		spaceID = workWithSpaces(ctx, client)
+		if spaceID == "" {
+			return
+		}
+	}
+
+	// Step 3: Working with types (creating new types)
+	err := workWithTypes(ctx, client, spaceID)
+	if err != nil {
+		log.Printf("Failed to work with types: %v", err)
 		return
 	}
 
-	// Step 3: Working with object types
+	// Step 4: Working with object types
 	typeID := workWithObjectTypes(ctx, client, spaceID)
 	if typeID == "" {
 		return
 	}
 
-	// Step 4: Working with templates
+	// Step 5: Working with templates
 	templateID := workWithTemplates(ctx, client, spaceID, typeID)
 
-	// Step 5: Working with objects
+	// Step 6: Working with objects
 	objectID := workWithObjects(ctx, client, spaceID, templateID)
 	if objectID == "" {
 		return
 	}
 
-	// Step 6: Working with lists and views
+	// Step 7: Working with lists and views
 	listID := workWithLists(ctx, client, spaceID, objectID)
 	if listID == "" {
 		return
 	}
 
-	// Step 7: Searching for objects
+	// Step 8: Searching for objects
 	searchObjects(ctx, client, spaceID)
 
-	// Step 8: Working with members
+	// Step 9: Working with members
 	workWithMembers(ctx, client, spaceID)
 
 	fmt.Println("\nSuccessfully completed all example operations!")
@@ -219,6 +232,104 @@ func workWithTemplates(ctx context.Context, client anytype.Client, spaceID, type
 }
 
 // workWithObjects demonstrates operations with objects
+func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) error {
+	fmt.Println("\n=== Working with Types ===")
+
+	// Create a new type
+	fmt.Println("Creating a new type...")
+	createTypeReq := anytype.CreateTypeRequest{
+		Name:   "Product",
+		Layout: "basic",
+		Icon: &anytype.Icon{
+			Format: anytype.IconFormatEmoji,
+			Emoji:  "📦",
+		},
+		PluralName: "Products",
+		Properties: []anytype.PropertyDefinition{
+			{
+				Key:    "price",
+				Name:   "Price",
+				Format: "number",
+			},
+			{
+				Key:    "category",
+				Name:   "Category",
+				Format: "text",
+			},
+			{
+				Key:    "description",
+				Name:   "Description",
+				Format: "text",
+			},
+		},
+	}
+
+	newType, err := client.Space(spaceID).Types().Create(ctx, createTypeReq)
+	if err != nil {
+		return fmt.Errorf("failed to create type: %w", err)
+	}
+
+	fmt.Printf("Created type: %s (Key: %s)\n", newType.Type.Name, newType.Type.Key)
+	fmt.Printf("Type description: %s\n", newType.Type.Description)
+	fmt.Printf("Type has %d property definitions\n", len(newType.Type.PropertyDefinitions))
+
+	for _, prop := range newType.Type.PropertyDefinitions {
+		fmt.Printf("  - Property: %s (%s) - Format: %s\n", prop.Name, prop.Key, prop.Format)
+	}
+
+	// Create an object of the custom type
+	fmt.Println("\nCreating object of custom type...")
+	createReq := anytype.CreateObjectRequest{
+		TypeKey: newType.Type.Key,
+		Name:    "Gaming Laptop",
+		Icon: &anytype.Icon{
+			Format: anytype.IconFormatEmoji,
+			Emoji:  "💻",
+		},
+		Properties: []map[string]any{
+			{
+				"key":    "price",
+				"number": 1299.99,
+			},
+			{
+				"key":  "category",
+				"text": "Electronics",
+			},
+			{
+				"key":  "description",
+				"text": "High-performance gaming laptop with advanced graphics card.",
+			},
+		},
+	}
+
+	newObject, err := client.Space(spaceID).Objects().Create(ctx, createReq)
+	if err != nil {
+		log.Printf("Failed to create object: %v", err)
+		return nil
+	}
+
+	objectID := newObject.Object.ID
+	fmt.Printf("Created object: %s (ID: %s)\n", newObject.Object.Name, objectID)
+	fmt.Printf("Object type: %s\n", newObject.Object.Type.Name)
+
+	objectDetails, err := client.Space(spaceID).Object(objectID).Get(ctx)
+	if err != nil {
+		log.Printf("Failed to get object details: %v", err)
+	} else {
+		fmt.Printf("Object details:\n")
+		fmt.Printf("  Name: %s\n", objectDetails.Object.Name)
+		fmt.Printf("  Type: %s\n", objectDetails.Object.Type.Name)
+		if objectDetails.Object.Properties != nil {
+			fmt.Printf("  Properties:\n")
+			for _, value := range objectDetails.Object.Properties {
+				fmt.Printf("    %s: %+v\n", value.Key, value)
+			}
+		}
+	}
+
+	return nil
+}
+
 func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templateID string) string {
 	fmt.Println("\n=== Working with Objects ===")
 
@@ -236,10 +347,9 @@ func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templa
 	fmt.Println("Creating a new page object...")
 
 	createReq := anytype.CreateObjectRequest{
-		TypeKey:     "page", // Using the known type key for pages
-		Name:        "Go SDK Example Page",
-		Description: "Created via the Go SDK examples",
-		Body:        "# Go SDK Example\n\nThis page was created using the Anytype Go SDK.\n\n## Features\n\n- Easy authentication\n- Space management\n- Object creation and manipulation\n- Search capabilities",
+		TypeKey: "page", // Using the known type key for pages
+		Name:    "Go SDK Example Page",
+		Body:    "# Go SDK Example\n\nThis page was created using the Anytype Go SDK.\n\n## Features\n\n- Easy authentication\n- Space management\n- Object creation and manipulation\n- Search capabilities",
 	}
 
 	// Use template if available

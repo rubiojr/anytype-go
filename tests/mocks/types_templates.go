@@ -12,6 +12,7 @@ type MockTypeService struct {
 	ListFunc         func(ctx context.Context) ([]anytype.Type, error)
 	GetFunc          func(ctx context.Context, typeKey string) (*anytype.Type, error)
 	GetKeyByNameFunc func(ctx context.Context, name string) (string, error)
+	CreateFunc       func(ctx context.Context, request anytype.CreateTypeRequest) (*anytype.TypeResponse, error)
 }
 
 // NewMockTypeService creates a new instance of MockTypeService with default implementations
@@ -44,6 +45,16 @@ func NewMockTypeService() *MockTypeService {
 			}
 			return "unknown", nil
 		},
+		CreateFunc: func(ctx context.Context, request anytype.CreateTypeRequest) (*anytype.TypeResponse, error) {
+			return &anytype.TypeResponse{
+				Type: anytype.Type{
+					Key:    "mock-type-" + request.Name,
+					Name:   request.Name,
+					Icon:   request.Icon,
+					Layout: request.Layout,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -60,6 +71,11 @@ func (s *MockTypeService) Get(ctx context.Context, typeKey string) (*anytype.Typ
 // GetKeyByName calls the mock implementation
 func (s *MockTypeService) GetKeyByName(ctx context.Context, name string) (string, error) {
 	return s.GetKeyByNameFunc(ctx, name)
+}
+
+// Create calls the mock implementation
+func (s *MockTypeService) Create(ctx context.Context, request anytype.CreateTypeRequest) (*anytype.TypeResponse, error) {
+	return s.CreateFunc(ctx, request)
 }
 
 // Type returns a mock type context for a specific type

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/epheo/anytype-go"
 )
@@ -67,6 +68,24 @@ func (tc *TypeClientImpl) GetKeyByName(ctx context.Context, name string) (string
 	}
 
 	return "", ErrTypeNotFound
+}
+
+// Create creates a new type in the space
+func (tc *TypeClientImpl) Create(ctx context.Context, request anytype.CreateTypeRequest) (*anytype.TypeResponse, error) {
+	endpoint := fmt.Sprintf("/spaces/%s/types", tc.spaceID)
+
+	req, err := tc.client.newRequest(ctx, http.MethodPost, endpoint, request)
+	if err != nil {
+		return nil, err
+	}
+
+	var response anytype.TypeResponse
+	err = tc.client.doRequest(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
 // Type returns a TypeContext for a specific type
