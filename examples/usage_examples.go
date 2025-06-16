@@ -232,22 +232,27 @@ func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) e
 	// Create a new type
 	fmt.Println("Creating a new type...")
 	createTypeReq := anytype.CreateTypeRequest{
-		Name:   "Book",
+		Name:   "Product",
 		Layout: "basic",
 		Icon: &anytype.Icon{
 			Format: anytype.IconFormatEmoji,
-			Emoji:  "📚",
+			Emoji:  "📦",
 		},
-		PluralName: "Books",
+		PluralName: "Products",
 		Properties: []anytype.PropertyDefinition{
 			{
-				Key:    "author",
-				Name:   "Author",
+				Key:    "price",
+				Name:   "Price",
+				Format: "number",
+			},
+			{
+				Key:    "category",
+				Name:   "Category",
 				Format: "text",
 			},
 			{
-				Key:    "isbn",
-				Name:   "ISBN",
+				Key:    "description",
+				Name:   "Description",
 				Format: "text",
 			},
 		},
@@ -261,6 +266,60 @@ func workWithTypes(ctx context.Context, client anytype.Client, spaceID string) e
 	fmt.Printf("Created type: %s (Key: %s)\n", newType.Type.Name, newType.Type.Key)
 	fmt.Printf("Type description: %s\n", newType.Type.Description)
 	fmt.Printf("Type has %d property definitions\n", len(newType.Type.PropertyDefinitions))
+
+	for _, prop := range newType.Type.PropertyDefinitions {
+		fmt.Printf("  - Property: %s (%s) - Format: %s\n", prop.Name, prop.Key, prop.Format)
+	}
+
+	// Create an object of the custom type
+	fmt.Println("\nCreating object of custom type...")
+	createReq := anytype.CreateObjectRequest{
+		TypeKey: newType.Type.Key,
+		Name:    "Gaming Laptop",
+		Icon: &anytype.Icon{
+			Format: anytype.IconFormatEmoji,
+			Emoji:  "💻",
+		},
+		Properties: []map[string]any{
+			{
+				"key":    "price",
+				"number": 1299.99,
+			},
+			{
+				"key":  "category",
+				"text": "Electronics",
+			},
+			{
+				"key":  "description",
+				"text": "High-performance gaming laptop with advanced graphics card.",
+			},
+		},
+	}
+
+	newObject, err := client.Space(spaceID).Objects().Create(ctx, createReq)
+	if err != nil {
+		log.Printf("Failed to create object: %v", err)
+		return nil
+	}
+
+	objectID := newObject.Object.ID
+	fmt.Printf("Created object: %s (ID: %s)\n", newObject.Object.Name, objectID)
+	fmt.Printf("Object type: %s\n", newObject.Object.Type.Name)
+
+	objectDetails, err := client.Space(spaceID).Object(objectID).Get(ctx)
+	if err != nil {
+		log.Printf("Failed to get object details: %v", err)
+	} else {
+		fmt.Printf("Object details:\n")
+		fmt.Printf("  Name: %s\n", objectDetails.Object.Name)
+		fmt.Printf("  Type: %s\n", objectDetails.Object.Type.Name)
+		if objectDetails.Object.Properties != nil {
+			fmt.Printf("  Properties:\n")
+			for key, value := range objectDetails.Object.Properties {
+				fmt.Printf("    %s: %v\n", key, value)
+			}
+		}
+	}
 
 	return nil
 }
