@@ -26,7 +26,7 @@ type CreateApiKeyRequest struct {
 
 // CreateChallenge initiates a secure authentication flow
 func (ac *AuthClientImpl) CreateChallenge(ctx context.Context, appName string) (*anytype.CreateChallengeResponse, error) {
-	urlPath := "/v1/auth/challenges"
+	urlPath := "/auth/challenges"
 
 	requestBody := CreateChallengeRequest{
 		AppName: appName,
@@ -47,7 +47,7 @@ func (ac *AuthClientImpl) CreateChallenge(ctx context.Context, appName string) (
 
 // CreateApiKey completes the authentication flow by providing a code
 func (ac *AuthClientImpl) CreateApiKey(ctx context.Context, challengeID string, code string) (*anytype.CreateApiKeyResponse, error) {
-	urlPath := "/v1/auth/api_keys"
+	urlPath := "/auth/api_keys"
 
 	requestBody := CreateApiKeyRequest{
 		ChallengeID: challengeID,

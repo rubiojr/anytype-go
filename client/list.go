@@ -15,13 +15,23 @@ type ListClientImpl struct {
 	listID  string
 }
 
+// AddObjectsToListRequest represents the request structure for adding objects to a list
+type AddObjectsToListRequest struct {
+	Objects []string `json:"objects"`
+}
+
 // Add is used for adding objects to any list
 func (lc *ListClientImpl) Add(ctx context.Context, objectIDs []string) error {
 	// Create HTTP request
 	endpoint := "/spaces/" + lc.spaceID + "/lists/" + lc.listID + "/objects"
 
-	// Convert objectIDs to JSON
-	jsonData, err := json.Marshal(objectIDs)
+	// Create the proper request structure
+	requestBody := AddObjectsToListRequest{
+		Objects: objectIDs,
+	}
+
+	// Convert to JSON
+	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}
@@ -60,7 +70,7 @@ func (lc *ListClientImpl) GetViews(ctx context.Context, listID string) ([]anytyp
 
 // GetObjects retrieves objects for a specific list view
 func (lc *ListClientImpl) GetObjects(ctx context.Context, listID string, viewID string) ([]anytype.Object, error) {
-	endpoint := "/spaces/" + lc.spaceID + "/lists/" + listID + "/" + viewID + "/objects"
+	endpoint := "/spaces/" + lc.spaceID + "/lists/" + listID + "/views/" + viewID + "/objects"
 	req, err := lc.client.newRequest(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -79,8 +89,13 @@ func (lc *ListClientImpl) GetObjects(ctx context.Context, listID string, viewID 
 func (lc *ListClientImpl) AddObjects(ctx context.Context, listID string, objectIDs []string) error {
 	endpoint := "/spaces/" + lc.spaceID + "/lists/" + listID + "/objects"
 
-	// Convert objectIDs to JSON
-	jsonData, err := json.Marshal(objectIDs)
+	// Create the proper request structure
+	requestBody := AddObjectsToListRequest{
+		Objects: objectIDs,
+	}
+
+	// Convert to JSON
+	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}
@@ -219,7 +234,13 @@ func (olc *ObjectListClientImpl) List(ctx context.Context) (*anytype.ObjectListR
 // Add adds objects to the list
 func (olc *ObjectListClientImpl) Add(ctx context.Context, objectIDs []string) error {
 	endpoint := "/spaces/" + olc.spaceID + "/lists/" + olc.listID + "/objects"
-	req, err := olc.client.newRequest(ctx, "POST", endpoint, objectIDs)
+
+	// Create the proper request structure
+	requestBody := AddObjectsToListRequest{
+		Objects: objectIDs,
+	}
+
+	req, err := olc.client.newRequest(ctx, "POST", endpoint, requestBody)
 	if err != nil {
 		return err
 	}
@@ -256,7 +277,7 @@ type ObjectViewClientImpl struct {
 
 // List returns all objects in the view
 func (ovc *ObjectViewClientImpl) List(ctx context.Context) (*anytype.ObjectListResponse, error) {
-	endpoint := "/spaces/" + ovc.spaceID + "/lists/" + ovc.listID + "/" + ovc.viewID + "/objects"
+	endpoint := "/spaces/" + ovc.spaceID + "/lists/" + ovc.listID + "/views/" + ovc.viewID + "/objects"
 	req, err := ovc.client.newRequest(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, err
