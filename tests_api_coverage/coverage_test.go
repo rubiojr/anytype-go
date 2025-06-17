@@ -25,6 +25,7 @@ type EndpointInfo struct {
 	Method      string
 	Tag         string
 	Summary     string
+	OperationID string
 	Implemented bool
 }
 
@@ -36,6 +37,22 @@ func upperFirst(s string) string {
 	r := []rune(s)
 	r[0] = []rune(strings.ToUpper(string(r[0])))[0]
 	return string(r)
+}
+
+// convertSnakeToPascal converts snake_case to PascalCase
+func convertSnakeToPascal(s string) string {
+	if s == "" {
+		return ""
+	}
+	
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		if part != "" {
+			parts[i] = upperFirst(part)
+		}
+	}
+	
+	return strings.Join(parts, "")
 }
 
 // TestApiCoverage analyzes how much of the API definition is covered by our SDK
@@ -96,13 +113,18 @@ func extractEndpoints(apiDef *ApiDefinition) []EndpointInfo {
 				continue
 			}
 
-			// Extract tag and summary
-			var tag, summary string
-			if tags, exists := methodMap["tags"].([]interface{}); exists && len(tags) > 0 {
-				tag = tags[0].(string)
+			// Extract tag, summary, operationId
+			var tag, summary, operationId string
+			if tags, exists := methodMap["tags"]; exists {
+				if tagArr, ok := tags.([]interface{}); ok && len(tagArr) > 0 {
+					tag, _ = tagArr[0].(string)
+				}
 			}
 			if sum, exists := methodMap["summary"].(string); exists {
 				summary = sum
+			}
+			if opid, exists := methodMap["operationId"].(string); exists {
+				operationId = opid
 			}
 
 			endpoints = append(endpoints, EndpointInfo{
@@ -110,6 +132,7 @@ func extractEndpoints(apiDef *ApiDefinition) []EndpointInfo {
 				Method:      strings.ToUpper(method),
 				Tag:         tag,
 				Summary:     summary,
+				OperationID: operationId,
 				Implemented: false,
 			})
 		}
@@ -394,11 +417,21 @@ func matchPathPatterns(apiPath, clientPath string) bool {
 		return false
 	}
 
+	// Normalize paths by removing version prefix for comparison
+	normalizeVersionPrefix := func(path string) string {
+		if strings.HasPrefix(path, "/v1/") {
+			return strings.TrimPrefix(path, "/v1")
+		}
+		return path
+	}
+
 	// Convert paths to comparable format by normalizing path parameters
-	// API: /spaces/{space_id} → /spaces/:param
+	// API: /v1/spaces/{space_id} → /spaces/:param
 	// Client: /spaces/{id} → /spaces/:param
 	// Client: /spaces/{} → /spaces/:param (from fmt.Sprintf extraction)
 	normalizePattern := func(path string) string {
+		// Remove version prefix
+		path = normalizeVersionPrefix(path)
 		// Replace path parameters with a standard token
 		re1 := regexp.MustCompile(`\{[^}]*\}`)
 		re2 := regexp.MustCompile(`\{\}`)
@@ -439,27 +472,45 @@ func matchPathPatterns(apiPath, clientPath string) bool {
 func inferMethodNames(endpoint *EndpointInfo) []string {
 	var names []string
 
-	// No path, can't infer
+	// Use operationId if present - convert snake_case to PascalCase
+	if endpoint.OperationID != "" {
+		// Convert snake_case operation IDs to PascalCase
+		opID := convertSnakeToPascal(endpoint.OperationID)
+		names = append(names, opID)
+		
+		// Also add the original in case it's already in the right format
+		if opID != endpoint.OperationID {
+			names = append(names, upperFirst(endpoint.OperationID))
+		}
+	}
+
+	// No path, can't infer more
 	if endpoint.Path == "" {
 		return names
 	}
 
 	// Special cases for specific endpoints
-	if endpoint.Path == "/auth/display_code" && endpoint.Method == "POST" {
-		names = append(names, "DisplayCode")
-		return names
+	if endpoint.Path == "/v1/auth/api_keys" && endpoint.Method == "POST" {
+		names = append(names, "CreateApiKey", "CreateAPIKey")
+	}
+	
+	if endpoint.Path == "/v1/auth/challenges" && endpoint.Method == "POST" {
+		names = append(names, "CreateChallenge", "CreateAuthChallenge")
 	}
 
-	if endpoint.Path == "/search" && endpoint.Method == "POST" {
-		names = append(names, "Search")
-		return names
+	if endpoint.Path == "/v1/search" && endpoint.Method == "POST" {
+		names = append(names, "Search", "SearchGlobal")
 	}
 
 	// Convert HTTP method and path to a likely function name
-	// Example: GET /spaces/{space_id} → GetSpace, GetSpaceByID
+	// Example: GET /v1/spaces/{space_id} → GetSpace, GetSpaceByID
 
-	// Extract path segments
-	segments := strings.Split(strings.Trim(endpoint.Path, "/"), "/")
+	// Extract path segments, removing v1 prefix
+	pathForSegments := endpoint.Path
+	if strings.HasPrefix(pathForSegments, "/v1/") {
+		pathForSegments = strings.TrimPrefix(pathForSegments, "/v1")
+	}
+	segments := strings.Split(strings.Trim(pathForSegments, "/"), "/")
 
 	// Remove path parameters
 	var cleanSegments []string
@@ -500,14 +551,14 @@ func inferMethodNames(endpoint *EndpointInfo) []string {
 		}
 
 		// Special case for auth endpoints
-		if cleanSegments[0] == "auth" {
+		if len(cleanSegments) > 0 && cleanSegments[0] == "auth" {
 			// For auth endpoints, use more specific names
 			if len(cleanSegments) > 1 {
 				switch cleanSegments[1] {
-				case "display_code":
-					names = append(names, "DisplayCode")
-				case "token":
-					names = append(names, "GetToken")
+				case "api_keys":
+					names = append(names, "CreateApiKey", "CreateAPIKey")
+				case "challenges":
+					names = append(names, "CreateChallenge", "CreateAuthChallenge")
 				}
 			}
 		}
@@ -633,7 +684,11 @@ func displayCoverageStats(t *testing.T, endpoints []EndpointInfo) {
 	t.Logf("=== Coverage by Tag ===")
 	for tag, stats := range tagStats {
 		tagCoverage := float64(stats.Implemented) * 100 / float64(stats.Total)
-		t.Logf("%s: %.1f%% (%d/%d)", tag, tagCoverage, stats.Implemented, stats.Total)
+		tagName := tag
+		if tagName == "" {
+			tagName = "(no tag)"
+		}
+		t.Logf("%s: %.1f%% (%d/%d)", tagName, tagCoverage, stats.Implemented, stats.Total)
 	}
 	t.Logf("")
 
@@ -650,7 +705,11 @@ func displayCoverageStats(t *testing.T, endpoints []EndpointInfo) {
 		t.Logf("=== Unimplemented Endpoints ===")
 		for _, e := range endpoints {
 			if !e.Implemented {
-				t.Logf("%s %s - %s", e.Method, e.Path, e.Summary)
+				opInfo := ""
+				if e.OperationID != "" {
+					opInfo = fmt.Sprintf(" [%s]", e.OperationID)
+				}
+				t.Logf("%s %s%s - %s", e.Method, e.Path, opInfo, e.Summary)
 			}
 		}
 	}
