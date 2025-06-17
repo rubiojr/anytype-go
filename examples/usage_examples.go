@@ -388,18 +388,6 @@ func workWithObjects(ctx context.Context, client anytype.Client, spaceID, templa
 	exportResp, err := client.Space(spaceID).Object(objectID).Export(ctx, "markdown")
 	if err != nil {
 		log.Printf("Failed to export object: %v", err)
-
-		// Try an alternative approach - check if the object details already include markdown content
-		fmt.Println("Trying alternative approach to get markdown content...")
-		detailedObject, err := client.Space(spaceID).Object(objectID).Get(ctx)
-		if err != nil {
-			log.Printf("Failed to get detailed object: %v", err)
-		} else if detailedObject.Object.Markdown != "" {
-			fmt.Printf("Markdown preview from object details: %s\n",
-				previewText(detailedObject.Object.Markdown, 100))
-		} else {
-			fmt.Println("No markdown content available in object details")
-		}
 	} else {
 		fmt.Printf("Markdown export preview: %s\n", previewText(exportResp.Markdown, 100))
 	}
