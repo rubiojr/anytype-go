@@ -3,6 +3,7 @@ package client
 
 import (
 	"context"
+	"log"
 
 	"github.com/epheo/anytype-go"
 )
@@ -12,26 +13,31 @@ type AuthClientImpl struct {
 	client *ClientImpl
 }
 
-// DisplayCode initiates a secure authentication flow
-func (ac *AuthClientImpl) DisplayCode(ctx context.Context, appName string) (*anytype.DisplayCodeResponse, error) {
-	// Create the URL path without query parameters
-	urlPath := "/auth/display_code"
+// CreateChallengeRequest represents the request body for creating a challenge
+type CreateChallengeRequest struct {
+	AppName string `json:"app_name"`
+}
 
-	// Create the request with an empty body as per API definition
-	req, err := ac.client.newRequest(ctx, "POST", urlPath, map[string]string{})
+// CreateApiKeyRequest represents the request body for creating an API key
+type CreateApiKeyRequest struct {
+	ChallengeID string `json:"challenge_id"`
+	Code        string `json:"code"`
+}
 
-	// Add query parameter properly to the request URL
-	if appName != "" && req != nil {
-		q := req.URL.Query()
-		q.Add("app_name", appName)
-		req.URL.RawQuery = q.Encode()
+// CreateChallenge initiates a secure authentication flow
+func (ac *AuthClientImpl) CreateChallenge(ctx context.Context, appName string) (*anytype.CreateChallengeResponse, error) {
+	urlPath := "/v1/auth/challenges"
+
+	requestBody := CreateChallengeRequest{
+		AppName: appName,
 	}
+
+	req, err := ac.client.newRequest(ctx, "POST", urlPath, requestBody)
 	if err != nil {
 		return nil, err
 	}
 
-	// Make the request and parse the response
-	var result anytype.DisplayCodeResponse
+	var result anytype.CreateChallengeResponse
 	if err := ac.client.doRequest(req, &result); err != nil {
 		return nil, err
 	}
@@ -39,31 +45,54 @@ func (ac *AuthClientImpl) DisplayCode(ctx context.Context, appName string) (*any
 	return &result, nil
 }
 
-// GetToken completes the authentication flow by providing a code
-func (ac *AuthClientImpl) GetToken(ctx context.Context, challengeID string, code string) (*anytype.TokenResponse, error) {
-	// Create the URL path without query parameters
-	urlPath := "/auth/token"
+// CreateApiKey completes the authentication flow by providing a code
+func (ac *AuthClientImpl) CreateApiKey(ctx context.Context, challengeID string, code string) (*anytype.CreateApiKeyResponse, error) {
+	urlPath := "/v1/auth/api_keys"
 
-	// Create the request with an empty body as per API definition
-	req, err := ac.client.newRequest(ctx, "POST", urlPath, map[string]string{})
-
-	// Add query parameters properly to the request URL
-	if req != nil {
-		q := req.URL.Query()
-		q.Add("challenge_id", challengeID)
-		q.Add("code", code)
-		req.URL.RawQuery = q.Encode()
+	requestBody := CreateApiKeyRequest{
+		ChallengeID: challengeID,
+		Code:        code,
 	}
 
+	req, err := ac.client.newRequest(ctx, "POST", urlPath, requestBody)
 	if err != nil {
 		return nil, err
 	}
 
-	// Make the request and parse the response
-	var result anytype.TokenResponse
+	var result anytype.CreateApiKeyResponse
 	if err := ac.client.doRequest(req, &result); err != nil {
 		return nil, err
 	}
 
 	return &result, nil
+}
+
+// DisplayCode initiates a secure authentication flow
+// Deprecated: Use CreateChallenge instead
+func (ac *AuthClientImpl) DisplayCode(ctx context.Context, appName string) (*anytype.DisplayCodeResponse, error) {
+	log.Println("Warning: DisplayCode is deprecated, use CreateChallenge instead")
+
+	resp, err := ac.CreateChallenge(ctx, appName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &anytype.DisplayCodeResponse{
+		ChallengeID: resp.ChallengeID,
+	}, nil
+}
+
+// GetToken completes the authentication flow by providing a code
+// Deprecated: Use CreateApiKey instead
+func (ac *AuthClientImpl) GetToken(ctx context.Context, challengeID string, code string) (*anytype.TokenResponse, error) {
+	log.Println("Warning: GetToken is deprecated, use CreateApiKey instead")
+
+	resp, err := ac.CreateApiKey(ctx, challengeID, code)
+	if err != nil {
+		return nil, err
+	}
+
+	return &anytype.TokenResponse{
+		AppKey: resp.ApiKey,
+	}, nil
 }

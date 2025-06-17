@@ -84,7 +84,7 @@ func authenticate(ctx context.Context) anytype.Client {
 
 	// Step 1: Initiate authentication and get challenge ID
 	fmt.Println("Initiating authentication flow...")
-	authResponse, err := client.Auth().DisplayCode(ctx, "GoSDKExample")
+	authResponse, err := client.Auth().CreateChallenge(ctx, "GoSDKExample")
 	if err != nil {
 		log.Printf("Failed to initiate authentication: %v", err)
 		return nil
@@ -97,19 +97,19 @@ func authenticate(ctx context.Context) anytype.Client {
 	fmt.Scanln(&code)
 
 	// Step 3: Complete authentication and get tokens
-	tokenResponse, err := client.Auth().GetToken(ctx, challengeID, code)
+	tokenResponse, err := client.Auth().CreateApiKey(ctx, challengeID, code)
 	if err != nil {
 		log.Printf("Authentication failed: %v", err)
 		return nil
 	}
 
-	fmt.Printf("Authentication successful! AppKey: %s\n",
-		safeSubstring(tokenResponse.AppKey, 10))
+	fmt.Printf("Authentication successful! ApiKey: %s\n",
+		safeSubstring(tokenResponse.ApiKey, 10))
 
 	// Create a new authenticated client with the tokens
 	client = anytype.NewClient(
 		anytype.WithBaseURL("http://localhost:31009"),
-		anytype.WithAppKey(tokenResponse.AppKey),
+		anytype.WithAppKey(tokenResponse.ApiKey),
 	)
 
 	return client

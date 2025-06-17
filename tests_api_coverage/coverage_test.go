@@ -44,14 +44,14 @@ func convertSnakeToPascal(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	parts := strings.Split(s, "_")
 	for i, part := range parts {
 		if part != "" {
 			parts[i] = upperFirst(part)
 		}
 	}
-	
+
 	return strings.Join(parts, "")
 }
 
@@ -477,7 +477,7 @@ func inferMethodNames(endpoint *EndpointInfo) []string {
 		// Convert snake_case operation IDs to PascalCase
 		opID := convertSnakeToPascal(endpoint.OperationID)
 		names = append(names, opID)
-		
+
 		// Also add the original in case it's already in the right format
 		if opID != endpoint.OperationID {
 			names = append(names, upperFirst(endpoint.OperationID))
@@ -487,15 +487,6 @@ func inferMethodNames(endpoint *EndpointInfo) []string {
 	// No path, can't infer more
 	if endpoint.Path == "" {
 		return names
-	}
-
-	// Special cases for specific endpoints
-	if endpoint.Path == "/v1/auth/api_keys" && endpoint.Method == "POST" {
-		names = append(names, "CreateApiKey", "CreateAPIKey")
-	}
-	
-	if endpoint.Path == "/v1/auth/challenges" && endpoint.Method == "POST" {
-		names = append(names, "CreateChallenge", "CreateAuthChallenge")
 	}
 
 	if endpoint.Path == "/v1/search" && endpoint.Method == "POST" {
@@ -548,19 +539,6 @@ func inferMethodNames(endpoint *EndpointInfo) []string {
 		if cleanSegments[len(cleanSegments)-1] == "search" {
 			names = append(names, "Search")
 			// continue with standard names generation as well
-		}
-
-		// Special case for auth endpoints
-		if len(cleanSegments) > 0 && cleanSegments[0] == "auth" {
-			// For auth endpoints, use more specific names
-			if len(cleanSegments) > 1 {
-				switch cleanSegments[1] {
-				case "api_keys":
-					names = append(names, "CreateApiKey", "CreateAPIKey")
-				case "challenges":
-					names = append(names, "CreateChallenge", "CreateAuthChallenge")
-				}
-			}
 		}
 
 		// Create singular form for resource name
