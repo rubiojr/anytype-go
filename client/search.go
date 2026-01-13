@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // SearchClientImpl implements the SearchClient interface

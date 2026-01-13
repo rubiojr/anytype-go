@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // SpaceClientImpl implements the SpaceClient interface

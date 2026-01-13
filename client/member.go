@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/epheo/anytype-go"
-	"github.com/epheo/anytype-go/options"
+	"github.com/rubiojr/anytype-go"
+	"github.com/rubiojr/anytype-go/options"
 )
 
 // MemberClientImpl implements the MemberClient interface

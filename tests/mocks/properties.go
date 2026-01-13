@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // MockSpacePropertyClient implements the anytype.SpacePropertyClient interface for testing

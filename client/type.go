@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 var ErrTypeNotFound = errors.New("type not found")

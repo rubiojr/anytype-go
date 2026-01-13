@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/epheo/anytype-go"
-	"github.com/epheo/anytype-go/tests/mocks"
+	"github.com/rubiojr/anytype-go"
+	"github.com/rubiojr/anytype-go/tests/mocks"
 )
 
 // TestClient represents a test client with authentication details

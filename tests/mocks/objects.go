@@ -3,8 +3,8 @@ package mocks
 import (
 	"context"
 
-	"github.com/epheo/anytype-go"
-	"github.com/epheo/anytype-go/options"
+	"github.com/rubiojr/anytype-go"
+	"github.com/rubiojr/anytype-go/options"
 )
 
 // MockObjectsService implements the anytype.ObjectClient interface for testing

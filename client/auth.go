@@ -5,7 +5,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // AuthClientImpl implements the AuthClient interface

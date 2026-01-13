@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // MockAuthService implements the anytype.AuthClient interface for testing

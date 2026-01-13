@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // TestListsAndViews tests list and view-related operations

@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/epheo/anytype-go"
+	"github.com/rubiojr/anytype-go"
 )
 
 // BlockClientImpl implements the BlockClient interface
