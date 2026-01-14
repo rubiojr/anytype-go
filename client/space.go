@@ -3,9 +3,11 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/rubiojr/anytype-go"
+	"github.com/rubiojr/anytype-go/options"
 )
 
 // SpaceClientImpl implements the SpaceClient interface
@@ -126,8 +128,23 @@ func (sc *SpaceContextImpl) Type(typeID string) anytype.TypeContext {
 }
 
 // Search searches for objects within this space
-func (sc *SpaceContextImpl) Search(ctx context.Context, request anytype.SearchRequest) (*anytype.SearchResponse, error) {
+func (sc *SpaceContextImpl) Search(ctx context.Context, request anytype.SearchRequest, opts ...options.ListOption) (*anytype.SearchResponse, error) {
 	endpoint := "/spaces/" + sc.spaceID + "/search"
+
+	// Apply pagination options
+	listOpts := options.ApplyListOptions(opts...)
+	if listOpts.Limit > 0 || listOpts.Offset > 0 {
+		endpoint += "?"
+		if listOpts.Limit > 0 {
+			endpoint += fmt.Sprintf("limit=%d", listOpts.Limit)
+			if listOpts.Offset > 0 {
+				endpoint += "&"
+			}
+		}
+		if listOpts.Offset > 0 {
+			endpoint += fmt.Sprintf("offset=%d", listOpts.Offset)
+		}
+	}
 
 	// Create HTTP request with the request struct directly
 	// The newRequest method will handle JSON marshaling

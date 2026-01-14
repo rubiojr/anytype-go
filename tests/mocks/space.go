@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rubiojr/anytype-go"
+	"github.com/rubiojr/anytype-go/options"
 )
 
 // MockSpacesService implements the anytype.SpaceClient interface for testing
@@ -56,7 +57,7 @@ type MockSpaceService struct {
 	MockObjectsService *MockObjectsService
 	MockMembersService *MockMembersService
 	MockPropertyClient *MockSpacePropertyClient
-	MockSearchFunc     func(ctx context.Context, req anytype.SearchRequest) (*anytype.SearchResponse, error)
+	MockSearchFunc     func(ctx context.Context, req anytype.SearchRequest, opts ...options.ListOption) (*anytype.SearchResponse, error)
 }
 
 // NewMockSpaceService creates a new instance of MockSpaceService with default implementations
@@ -81,7 +82,7 @@ func NewMockSpaceService() *MockSpaceService {
 		MockObjectsService: objectsService,
 		MockMembersService: membersService,
 		MockPropertyClient: propertyClient,
-		MockSearchFunc: func(ctx context.Context, req anytype.SearchRequest) (*anytype.SearchResponse, error) {
+		MockSearchFunc: func(ctx context.Context, req anytype.SearchRequest, opts ...options.ListOption) (*anytype.SearchResponse, error) {
 			// Check if this is the specific search we're testing for
 			if req.Query == "UniqueTestSearchTerm2025" {
 				// Return a matching object with the expected ID format
@@ -161,8 +162,8 @@ func (s *MockSpaceService) List(listID string) anytype.ListContext {
 }
 
 // Search calls the mock implementation
-func (s *MockSpaceService) Search(ctx context.Context, req anytype.SearchRequest) (*anytype.SearchResponse, error) {
-	return s.MockSearchFunc(ctx, req)
+func (s *MockSpaceService) Search(ctx context.Context, req anytype.SearchRequest, opts ...options.ListOption) (*anytype.SearchResponse, error) {
+	return s.MockSearchFunc(ctx, req, opts...)
 }
 
 // Properties returns the mock property client

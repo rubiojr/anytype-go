@@ -2,6 +2,8 @@ package anytype
 
 import (
 	"context"
+
+	"github.com/rubiojr/anytype-go/options"
 )
 
 // SpaceClient provides operations on spaces
@@ -34,7 +36,7 @@ type SpaceContext interface {
 	Properties() SpacePropertyClient
 
 	// Search searches for objects within this space
-	Search(ctx context.Context, request SearchRequest) (*SearchResponse, error)
+	Search(ctx context.Context, request SearchRequest, opts ...options.ListOption) (*SearchResponse, error)
 
 	// Lists returns a ListClient for this space
 	Lists() ListClient

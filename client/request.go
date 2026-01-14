@@ -20,8 +20,16 @@ func (c *ClientImpl) newRequest(ctx context.Context, method, urlPath string, bod
 	if err != nil {
 		return nil, err
 	}
+
+	// Parse the urlPath to separate path and query string
+	parsedPath, err := url.Parse(urlPath)
+	if err != nil {
+		return nil, err
+	}
+
 	// Ensure the /v1 prefix is included in the path
-	u.Path = path.Join(u.Path, "/v1", urlPath)
+	u.Path = path.Join(u.Path, "/v1", parsedPath.Path)
+	u.RawQuery = parsedPath.RawQuery
 
 	var bodyReader io.Reader
 	if body != nil {

@@ -15,7 +15,7 @@ type MockObjectsService struct {
 	GetFunc         func(ctx context.Context) (*anytype.ObjectResponse, error)
 	ExportFunc      func(ctx context.Context, format string) (*anytype.ExportResult, error)
 	DeleteFunc      func(ctx context.Context) (*anytype.ObjectResponse, error)
-	UpdateFunc      func(ctx context.Context, req anytype.UpdateObjectRequest) (*anytype.ObjectResponse, error)
+	UpdateFunc      func(ctx context.Context, req anytype.UpdateObjectRequest) error
 }
 
 // NewMockObjectsService creates a new instance of MockObjectsService with default implementations
@@ -95,14 +95,8 @@ func NewMockObjectsService() *MockObjectsService {
 				},
 			}, nil
 		},
-		UpdateFunc: func(ctx context.Context, req anytype.UpdateObjectRequest) (*anytype.ObjectResponse, error) {
-			return &anytype.ObjectResponse{
-				Object: &anytype.Object{
-					ID:      "mock-object-id-1",
-					Name:    "Updated Mock Object",
-					SpaceID: "mock-space-id",
-				},
-			}, nil
+		UpdateFunc: func(ctx context.Context, req anytype.UpdateObjectRequest) error {
+			return nil
 		},
 	}
 }
@@ -158,7 +152,7 @@ func (s *MockObjectsService) Delete(ctx context.Context) (*anytype.ObjectRespons
 }
 
 // Update calls the mock implementation
-func (s *MockObjectsService) Update(ctx context.Context, req anytype.UpdateObjectRequest) (*anytype.ObjectResponse, error) {
+func (s *MockObjectsService) Update(ctx context.Context, req anytype.UpdateObjectRequest) error {
 	return s.UpdateFunc(ctx, req)
 }
 
