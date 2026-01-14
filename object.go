@@ -20,6 +20,9 @@ type ObjectContext interface {
 	// Get retrieves the object
 	Get(ctx context.Context) (*ObjectResponse, error)
 
+	// Update updates the object
+	Update(ctx context.Context, request UpdateObjectRequest) error
+
 	// Delete deletes the object
 	Delete(ctx context.Context) (*ObjectResponse, error)
 
@@ -59,16 +62,9 @@ type CreateObjectRequest struct {
 
 // UpdateObjectRequest contains parameters for updating an object
 type UpdateObjectRequest struct {
-	Name        string
-	Description string
-	Icon        *Icon
-	Properties  []PropertyUpdateRequest
-}
-
-// PropertyUpdateRequest contains parameters for updating a property
-type PropertyUpdateRequest struct {
-	Key   string
-	Value interface{}
+	Name       string           `json:"name,omitempty"`
+	Icon       *Icon            `json:"icon,omitempty"`
+	Properties []map[string]any `json:"properties,omitempty"`
 }
 
 // IconFormat represents the type of icon
